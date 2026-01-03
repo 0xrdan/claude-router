@@ -104,14 +104,22 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 
 ### Option 1: Claude Code Plugin (Recommended)
 
+Run these commands in any Claude Code session:
+
 ```bash
-# Add the marketplace (one-time)
+# Step 1: Add the marketplace (one-time, per project)
 /plugin marketplace add 0xrdan/claude-router
 
-# Install
+# Step 2: Install the plugin
 /plugin install claude-router@claude-router-marketplace
 
-# Update (or enable auto-update via /plugin → Marketplaces)
+# Step 3: Restart Claude Code session to activate
+```
+
+**Note:** The marketplace must be added in each project where you want to use Claude Router. Once added, updates are automatic.
+
+```bash
+# Update manually
 /plugin marketplace update claude-router-marketplace
 
 # Uninstall

@@ -295,19 +295,15 @@ def main():
         try:
             input_data = json.load(sys.stdin)
         except json.JSONDecodeError:
-            # No valid input, exit silently with empty JSON
-            print("{}")
             sys.exit(0)
 
         prompt = input_data.get("prompt", "")
 
         if not prompt or len(prompt) < 10:
-            print("{}")
             sys.exit(0)
 
         # Skip slash commands
         if prompt.strip().startswith("/"):
-            print("{}")
             sys.exit(0)
 
         # Classify using hybrid approach
@@ -339,14 +335,12 @@ Signals: {signals_str}
 ACTION REQUIRED: Use the Task tool to spawn the "{subagent}" subagent with the user's query.
 Do not handle this query directly - delegate to the subagent for cost-optimized execution."""
 
-        # Output JSON for Claude Code hook
-        output = {"additionalContext": context}
-        print(json.dumps(output))
+        # Output plain text - appears in transcript AND goes to Claude
+        print(context)
         sys.exit(0)
 
     except Exception:
-        # Any error: output empty JSON to not break the hook
-        print("{}")
+        # Any error: exit silently
         sys.exit(0)
 
 
