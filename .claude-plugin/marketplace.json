@@ -1,0 +1,18 @@
+{
+  "name": "claude-router-marketplace",
+  "owner": {
+    "name": "Dan Monteiro",
+    "url": "https://github.com/0xrdan"
+  },
+  "plugins": [
+    {
+      "name": "claude-router",
+      "source": {
+        "source": "github",
+        "repo": "0xrdan/claude-router"
+      },
+      "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity",
+      "version": "1.0.0"
+    }
+  ]
+}

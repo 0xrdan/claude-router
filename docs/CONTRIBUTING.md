@@ -54,15 +54,15 @@ echo '{"prompt": "What is the syntax for a Python list?"}' | python3 .claude/hoo
    - Fix false positives/negatives
    - Add language-specific patterns
 
-2. **Usage Statistics (Phase 4)**
-   - Track routing decisions to `~/.claude/router-stats.json`
-   - Create `/router-stats` skill to display savings
-   - Show "You saved $X this session" summaries
-
-3. **Context-Aware Routing (Phase 5)**
+2. **Context-Aware Routing (Phase 5)**
    - Factor in number of files open
    - Consider session history
    - Adjust based on error patterns
+
+3. **Learning from Feedback (Phase 6)**
+   - Track user overrides
+   - Adjust future routing based on patterns
+   - Per-project routing profiles
 
 ### Good First Issues
 
@@ -80,26 +80,52 @@ echo '{"prompt": "What is the syntax for a Python list?"}' | python3 .claude/hoo
 
 ## Pull Request Process
 
-1. Create a feature branch:
+**Important:** All changes must go through pull requests. Never push directly to `main`.
+
+### Workflow
+
+1. **Sync with main:**
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+
+2. **Create a feature branch:**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-2. Make your changes and commit:
+   Branch naming conventions:
+   - `feature/` - New features (e.g., `feature/phase-5-context-routing`)
+   - `fix/` - Bug fixes (e.g., `fix/classification-edge-case`)
+   - `docs/` - Documentation (e.g., `docs/improve-readme`)
+
+3. **Make your changes and commit:**
    ```bash
    git add .
-   git commit -m "Add: description of your change"
+   git commit -m "feat: description of your change"
    ```
 
-3. Push to your fork:
+4. **Push and create PR:**
    ```bash
-   git push origin feature/your-feature-name
+   git push -u origin feature/your-feature-name
+   gh pr create --title "Your PR title" --body "Description"
    ```
 
-4. Open a Pull Request with:
-   - Clear description of the change
-   - Any testing you've done
-   - Screenshots if applicable
+5. **After PR is merged:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git branch -d feature/your-feature-name  # Delete local branch
+   ```
+
+### PR Requirements
+
+- Clear description of the change
+- Reference related issues (if any)
+- Testing you've done
+- Screenshots if applicable
+- Update relevant documentation (README, planning docs)
 
 ## Commit Message Format
 
