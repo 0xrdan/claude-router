@@ -197,27 +197,40 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 Or add it to your project's `.env` file.
 
-### Manual Routing
+### Commands
 
-Use the `/route` skill for explicit routing:
+Claude Router provides two slash commands:
 
+**`/route <query>`** - Manually route a specific query:
 ```
 /route What's the syntax for a TypeScript interface?
 ```
 
+**`/router-stats`** - View your routing statistics and cost savings:
+```
+/router-stats
+```
+
+### Automatic vs Manual Routing
+
+- **Automatic**: The UserPromptSubmit hook classifies every query and injects routing context
+- **Manual**: Use `/route` to explicitly route a query with visible classification
+
 ## Project Structure
 
 ```
-.claude/
-├── settings.json              # Hook configuration
+claude-router/
 ├── hooks/
-│   └── classify-prompt.py     # Hybrid classifier
+│   └── classify-prompt.py     # Hybrid classifier (auto-routing)
+├── commands/
+│   ├── route.md               # /route command
+│   └── router-stats.md        # /router-stats command
 ├── agents/
-│   ├── fast-executor/         # Haiku agent
-│   ├── standard-executor/     # Sonnet agent
-│   └── deep-executor/         # Opus agent
+│   ├── fast-executor.md       # Haiku agent
+│   ├── standard-executor.md   # Sonnet agent
+│   └── deep-executor.md       # Opus agent
 └── skills/
-    └── route/                 # Manual /route skill
+    └── route/                 # Auto-invoked routing skill
 ```
 
 ## Why Anthropic Should Care

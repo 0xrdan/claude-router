@@ -9,7 +9,7 @@
       "name": "claude-router",
       "source": "./",
       "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity",
-      "version": "1.0.6"
+      "version": "1.0.7"
     }
   ]
 }
