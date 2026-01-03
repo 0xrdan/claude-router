@@ -124,9 +124,8 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 # Install
 curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh | bash
 
-# Uninstall (remove files from wherever you installed)
-rm -rf .claude/hooks/classify-prompt.py .claude/hooks/venv .claude/agents .claude/skills/route .claude/skills/router-stats
-# Also remove the UserPromptSubmit hook from .claude/settings.json
+# Uninstall
+curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/uninstall.sh | bash
 ```
 
 ### Option 3: Manual Install
@@ -137,7 +136,8 @@ git clone https://github.com/0xrdan/claude-router.git
 cd claude-router
 ./install.sh
 
-# Uninstall: same as Option 2
+# Uninstall
+./uninstall.sh
 ```
 
 ## Routing Rules
