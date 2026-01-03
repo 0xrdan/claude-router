@@ -208,10 +208,13 @@ Or add it to your project's `.env` file.
 
 Claude Router provides two slash commands:
 
-**`/route <query>`** - Manually route a specific query:
+**`/route <model> <query>`** - Override automatic routing and force a specific model:
 ```
-/route What's the syntax for a TypeScript interface?
+/route opus What's the syntax for a TypeScript interface?
+/route haiku Fix the authentication bug
+/route sonnet Design a caching system
 ```
+Models: `haiku`/`fast`, `sonnet`/`standard`, `opus`/`deep`
 
 **`/router-stats`** - View your routing statistics and cost savings:
 ```
@@ -221,7 +224,7 @@ Claude Router provides two slash commands:
 ### Automatic vs Manual Routing
 
 - **Automatic**: The UserPromptSubmit hook classifies every query and injects routing context
-- **Manual**: Use `/route` to explicitly route a query with visible classification
+- **Manual Override**: Use `/route <model>` to bypass automatic classification and force a specific model (e.g., `/route opus` for complex reasoning, `/route haiku` for cost savings)
 
 ## Project Structure
 
@@ -253,7 +256,7 @@ claude-router/
 1. **Zero-config start** - Works immediately with sensible defaults
 2. **Visible savings** - Use `/router-stats` to see your cost savings
 3. **Trust through transparency** - Every routing decision is explained
-4. **Easy override** - `/route` skill for manual control when needed
+4. **Easy override** - `/route <model>` to force any model when needed
 5. **Learns from feedback** - Future: adjust routing based on user overrides
 
 ## Roadmap
@@ -264,7 +267,7 @@ claude-router/
 - [x] **Phase 3:** Standalone repository
 - [x] **Phase 4:** Usage statistics and plugin distribution
   - `/router-stats` command with multiple value metrics
-  - `/route` command for manual routing
+  - `/route <model>` command for manual model override
   - Plugin marketplace distribution
   - Subscriber benefits (extended limits, longer sessions)
 
