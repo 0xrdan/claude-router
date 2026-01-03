@@ -240,6 +240,7 @@ Use the `/route` skill for explicit routing:
 
 ### Coming Soon
 - [ ] **Phase 5:** Context-aware routing
+  - Cache classifications for similar queries
   - Factor in number of files open
   - Consider session history and error patterns
   - Adjust based on project complexity profile
