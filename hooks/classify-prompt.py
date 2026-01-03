@@ -335,8 +335,14 @@ Signals: {signals_str}
 ACTION REQUIRED: Use the Task tool to spawn the "{subagent}" subagent with the user's query.
 Do not handle this query directly - delegate to the subagent for cost-optimized execution."""
 
-        # Output plain text - appears in transcript AND goes to Claude
-        print(context)
+        # Output JSON with hookSpecificOutput for transcript visibility
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": context
+            }
+        }
+        print(json.dumps(output))
         sys.exit(0)
 
     except Exception:
