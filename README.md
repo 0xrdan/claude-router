@@ -262,9 +262,11 @@ claude-router/
 - [x] **Phase 1:** Rule-based classification (~0ms, $0)
 - [x] **Phase 2:** Hybrid classification (rules + Haiku LLM fallback)
 - [x] **Phase 3:** Standalone repository
-- [x] **Phase 4:** Usage statistics and savings tracker
-  - Routing decisions logged to `~/.claude/router-stats.json`
-  - `/router-stats` skill shows savings and route distribution
+- [x] **Phase 4:** Usage statistics and plugin distribution
+  - `/router-stats` command with multiple value metrics
+  - `/route` command for manual routing
+  - Plugin marketplace distribution
+  - Subscriber benefits (extended limits, longer sessions)
 
 ### Coming Soon
 - [ ] **Phase 5:** Context-aware routing
