@@ -10,6 +10,13 @@
   "license": "MIT",
   "keywords": ["routing", "model-selection", "cost-optimization", "haiku", "sonnet", "opus"],
   "hooks": "./hooks/hooks.json",
-  "agents": ["./agents/"],
-  "skills": ["./skills/"]
+  "agents": [
+    "./agents/fast-executor.md",
+    "./agents/standard-executor.md",
+    "./agents/deep-executor.md"
+  ],
+  "skills": [
+    "./skills/route/SKILL.md",
+    "./skills/router-stats/SKILL.md"
+  ]
 }
