@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/classify-prompt.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

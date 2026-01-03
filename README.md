@@ -1,0 +1,210 @@
+# Claude Router
+
+**Intelligent model routing for Claude Code** - Automatically routes queries to the optimal Claude model (Haiku/Sonnet/Opus) based on complexity, reducing costs by up to 98% without sacrificing quality.
+
+## The Problem
+
+When using Claude Code, you're typically on a single model:
+- **Always Opus?** You're overpaying 5x for simple queries
+- **Always Sonnet?** Complex architecture tasks may need deeper reasoning
+- **Manual switching?** Tedious and requires knowing which model fits
+
+**Claude Router solves this** by automatically analyzing each query and routing it to the most cost-effective model.
+
+## Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Classification latency | ~0ms (rule-based) or ~100ms (LLM fallback) |
+| Classification cost | $0 (rules) or ~$0.001 (Haiku fallback) |
+| Cost savings (simple queries) | **~98%** (Haiku vs Opus) |
+| Cost savings (mixed workload) | **Est. 50-70%** |
+
+### Why This Matters: Three-Fold Savings
+
+Intelligent routing creates a **win-win** for everyone:
+
+**1. Consumer Savings (API Costs)**
+
+LLM pricing has two components, and you save on both:
+
+| Model | Input (per 1M tokens) | Output (per 1M tokens) |
+|-------|----------------------|------------------------|
+| Haiku | $0.25 | $1.25 |
+| Sonnet | $3 | $15 |
+| Opus | $15 | $75 |
+
+For a typical query (1K input, 2K output tokens):
+- **Opus cost:** $0.015 + $0.15 = **$0.165**
+- **Haiku cost:** $0.00025 + $0.0025 = **$0.00275**
+- **Your savings:** ~98%
+
+**2. Anthropic Savings (Compute Resources)**
+
+Haiku is a much smaller, faster model than Opus. When simple queries are routed to Haiku:
+- Less GPU compute required per request
+- Lower inference latency (faster responses for you)
+- More efficient resource allocation across Anthropic's infrastructure
+- Frees up Opus capacity for queries that genuinely need it
+
+**3. Better Developer Experience**
+
+- Simple queries get instant answers (Haiku is faster)
+- Complex queries get thorough analysis (Opus when needed)
+- No manual model switching required
+
+**The result:** You pay less, Anthropic uses fewer resources, and everyone gets appropriately-powered responses. This is sustainable AI usage.
+
+## How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Your Query                                │
+│                       │                                     │
+│                       ▼                                     │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │          UserPromptSubmit Hook                         │ │
+│  │          (classify-prompt.py)                          │ │
+│  │                                                        │ │
+│  │  1. Rule-based patterns (instant, free)                │ │
+│  │  2. Haiku LLM fallback (for edge cases, ~$0.001)       │ │
+│  └───────────────────────────────────────────────────────┘ │
+│                       │                                     │
+│         ┌─────────────┼─────────────┐                       │
+│         ▼             ▼             ▼                       │
+│  ┌───────────┐ ┌───────────┐ ┌───────────┐                 │
+│  │   fast    │ │ standard  │ │   deep    │                 │
+│  │  (Haiku)  │ │ (Sonnet)  │ │  (Opus)   │                 │
+│  │   $0.25   │ │    $3     │ │   $15     │  per 1M input   │
+│  └───────────┘ └───────────┘ └───────────┘                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Installation
+
+### One-Command Install
+
+```bash
+curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh | bash
+```
+
+### Manual Install
+
+```bash
+git clone https://github.com/0xrdan/claude-router.git
+cd claude-router
+./install.sh
+```
+
+## Routing Rules
+
+### Fast Route (Haiku) - Simple queries
+- Factual questions ("What is X?")
+- Code formatting, linting
+- Git status, log, diff
+- JSON/YAML manipulation
+- Regex generation
+- Syntax questions
+
+### Standard Route (Sonnet) - Typical coding
+- Bug fixes
+- Feature implementation
+- Code review
+- Refactoring
+- Test writing
+
+### Deep Route (Opus) - Complex tasks
+- Architecture decisions
+- Security audits
+- Multi-file refactors
+- Trade-off analysis
+- Performance optimization
+- System design
+
+## Example Output
+
+```
+[Claude Router] ROUTING DIRECTIVE
+Route: deep | Model: Opus | Confidence: 95% | Method: haiku-llm
+Signals: architecture, system design, trade-offs
+
+ACTION REQUIRED: Use the Task tool to spawn the "deep-executor" subagent...
+```
+
+## Configuration
+
+### Hybrid Classification
+
+By default, Claude Router uses rule-based classification (instant, free). For edge cases with low confidence, it can use Haiku LLM for smarter routing.
+
+To enable LLM fallback, set your API key:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Or add it to your project's `.env` file.
+
+### Manual Routing
+
+Use the `/route` skill for explicit routing:
+
+```
+/route What's the syntax for a TypeScript interface?
+```
+
+## Project Structure
+
+```
+.claude/
+├── settings.json              # Hook configuration
+├── hooks/
+│   └── classify-prompt.py     # Hybrid classifier
+├── agents/
+│   ├── fast-executor/         # Haiku agent
+│   ├── standard-executor/     # Sonnet agent
+│   └── deep-executor/         # Opus agent
+└── skills/
+    └── route/                 # Manual /route skill
+```
+
+## Why This Exists
+
+This project fills a gap that no existing tool addresses:
+
+| Existing Solutions | Claude Router |
+|-------------------|---------------|
+| Multi-provider routers (OpenRouter) | **Intra-Claude optimization** (Haiku/Sonnet/Opus) |
+| Manual `/model` switching | **Automatic routing** via hook |
+| Generic LLM complexity scoring | **Coding-task specific** patterns |
+| External API wrappers | **Native Claude Code integration** |
+
+## Roadmap
+
+- [x] Phase 1: Rule-based classification
+- [x] Phase 2: Hybrid classification (rules + Haiku LLM)
+- [x] Phase 3: Standalone repository (you're here!)
+- [ ] Phase 4: Usage statistics and savings tracker
+- [ ] Phase 5: Context-aware routing (files open, session history)
+- [ ] Phase 6: Learning from user overrides
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+
+### Quick Start for Contributors
+
+```bash
+git clone https://github.com/0xrdan/claude-router.git
+cd claude-router
+./install.sh  # Choose option 1 for project install
+```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+**Built for the Claude Code community** | [Report Issues](https://github.com/0xrdan/claude-router/issues)
