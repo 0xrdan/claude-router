@@ -108,42 +108,36 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 # Add the marketplace (one-time)
 /plugin marketplace add 0xrdan/claude-router
 
-# Install the plugin
+# Install
 /plugin install claude-router@claude-router-marketplace
 
-# Update when new versions are released
+# Update (or enable auto-update via /plugin → Marketplaces)
 /plugin marketplace update claude-router-marketplace
 
 # Uninstall
 /plugin uninstall claude-router@claude-router-marketplace
 ```
 
-Or enable auto-update: `/plugin` → Marketplaces → Enable auto-update
-
 ### Option 2: One-Command Install
 
 ```bash
+# Install
 curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh | bash
+
+# Uninstall (remove files from wherever you installed)
+rm -rf .claude/hooks/classify-prompt.py .claude/hooks/venv .claude/agents .claude/skills/route .claude/skills/router-stats
+# Also remove the UserPromptSubmit hook from .claude/settings.json
 ```
 
 ### Option 3: Manual Install
 
 ```bash
+# Install
 git clone https://github.com/0xrdan/claude-router.git
 cd claude-router
 ./install.sh
-```
 
-### Uninstall (Standalone)
-
-If you installed via Option 2 or 3, remove the files manually:
-
-```bash
-# If installed to project
-rm -rf .claude/hooks/classify-prompt.py .claude/agents .claude/skills
-
-# If installed globally
-rm -rf ~/.claude/hooks/classify-prompt.py ~/.claude/agents ~/.claude/skills
+# Uninstall: same as Option 2
 ```
 
 ## Routing Rules
