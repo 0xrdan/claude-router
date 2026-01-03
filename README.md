@@ -72,7 +72,14 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 - Complex queries get thorough analysis (Opus when needed)
 - No manual model switching required
 
-**The result:** You pay less, Anthropic uses fewer resources, and everyone gets appropriately-powered responses. This is sustainable AI usage.
+### 4. Subscriber Benefits (Pro/Max Users)
+
+For Claude Pro and Max subscribers, intelligent routing means:
+- **Extended usage limits** - Smaller models use less of your monthly capacity
+- **Longer sessions** - Less context consumed = fewer auto-compacts
+- **Faster responses** - Haiku responds 3-5x faster than Opus
+
+**The result:** You pay less (or extend your subscription further), Anthropic uses fewer resources, and everyone gets appropriately-powered responses. This is sustainable AI usage.
 
 ## How It Works
 
@@ -289,4 +296,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Built for the Claude Code community** | [Report Issues](https://github.com/0xrdan/claude-router/issues)
+**Built for the Claude Code community** | [Report Issues](https://github.com/0xrdan/claude-router/issues) | [Follow @dannymonteiro on LinkedIn](https://linkedin.com/in/dannymonteiro)

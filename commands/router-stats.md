@@ -64,6 +64,7 @@ Route Distribution:
 
 Value Metrics:
   Estimated Savings: $12.50 (vs always using Opus)
+  Estimated Tokens Saved: ~2.7M tokens
   Avg Cost per Query: $0.04 (vs $0.165 with Opus)
 
 Today
@@ -73,10 +74,19 @@ Savings: $3.20
 Routes: Fast 8 | Standard 15 | Deep 2
 ```
 
+## Why This Matters for Subscribers
+
+If you're on Claude Pro or Max, these metrics translate to real benefits:
+
+- **Extended usage limits** - Routing to smaller models uses less of your monthly capacity
+- **Longer sessions** - Less context consumed means fewer auto-compacts
+- **Faster responses** - Haiku responds 3-5x faster than Opus
+
 ## Metrics Explained
 
 - **Optimization Rate**: Percentage of queries routed to Haiku or Sonnet instead of Opus
-- **Estimated Savings**: Total cost saved compared to always using Opus
+- **Estimated Savings**: Total cost saved compared to always using Opus (API users)
+- **Estimated Tokens Saved**: Approximate tokens conserved by using efficient models
 - **Avg Cost per Query**: Your actual average cost vs what Opus would cost
 
 ## Cost Reference
