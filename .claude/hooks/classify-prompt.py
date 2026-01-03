@@ -12,9 +12,25 @@ import sys
 import os
 import re
 from pathlib import Path
+from datetime import datetime
+import fcntl
 
 # Confidence threshold for LLM fallback
 CONFIDENCE_THRESHOLD = 0.7
+
+# Stats file location
+STATS_FILE = Path.home() / ".claude" / "router-stats.json"
+
+# Cost estimates per 1M tokens (input/output)
+COST_PER_1M = {
+    "fast": {"input": 0.25, "output": 1.25},      # Haiku
+    "standard": {"input": 3.0, "output": 15.0},   # Sonnet
+    "deep": {"input": 15.0, "output": 75.0},      # Opus
+}
+
+# Average tokens per query (rough estimate)
+AVG_INPUT_TOKENS = 1000
+AVG_OUTPUT_TOKENS = 2000
 
 # Classification patterns
 PATTERNS = {
@@ -86,6 +102,86 @@ def get_api_key():
             continue
 
     return None
+
+
+def calculate_cost(route: str, input_tokens: int = AVG_INPUT_TOKENS, output_tokens: int = AVG_OUTPUT_TOKENS) -> float:
+    """Calculate estimated cost for a route."""
+    costs = COST_PER_1M[route]
+    input_cost = (input_tokens / 1_000_000) * costs["input"]
+    output_cost = (output_tokens / 1_000_000) * costs["output"]
+    return input_cost + output_cost
+
+
+def log_routing_decision(route: str, confidence: float, method: str, signals: list):
+    """Log routing decision to stats file."""
+    try:
+        # Ensure directory exists
+        STATS_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+        # Load existing stats or create new
+        stats = {
+            "version": "1.0",
+            "total_queries": 0,
+            "routes": {"fast": 0, "standard": 0, "deep": 0},
+            "estimated_savings": 0.0,
+            "sessions": [],
+            "last_updated": None
+        }
+
+        if STATS_FILE.exists():
+            try:
+                with open(STATS_FILE, "r") as f:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+                    stats = json.load(f)
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        # Update stats
+        stats["total_queries"] += 1
+        stats["routes"][route] += 1
+
+        # Calculate savings (compared to always using Opus)
+        actual_cost = calculate_cost(route)
+        opus_cost = calculate_cost("deep")
+        savings = opus_cost - actual_cost
+        stats["estimated_savings"] += savings
+
+        # Get or create today's session
+        today = datetime.now().strftime("%Y-%m-%d")
+        session = None
+        for s in stats.get("sessions", []):
+            if s["date"] == today:
+                session = s
+                break
+
+        if not session:
+            session = {
+                "date": today,
+                "queries": 0,
+                "routes": {"fast": 0, "standard": 0, "deep": 0},
+                "savings": 0.0
+            }
+            stats.setdefault("sessions", []).append(session)
+
+        session["queries"] += 1
+        session["routes"][route] += 1
+        session["savings"] += savings
+
+        # Keep only last 30 days of sessions
+        stats["sessions"] = sorted(stats["sessions"], key=lambda x: x["date"], reverse=True)[:30]
+
+        stats["last_updated"] = datetime.now().isoformat()
+
+        # Write stats atomically
+        with open(STATS_FILE, "w") as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            json.dump(stats, f, indent=2)
+            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+    except Exception:
+        # Don't fail the hook if stats logging fails
+        pass
 
 
 def classify_by_rules(prompt: str) -> dict:
@@ -213,6 +309,9 @@ def main():
     confidence = result["confidence"]
     signals = result["signals"]
     method = result.get("method", "rules")
+
+    # Log routing decision to stats
+    log_routing_decision(route, confidence, method, signals)
 
     # Map route to subagent and model
     subagent_map = {"fast": "fast-executor", "standard": "standard-executor", "deep": "deep-executor"}
