@@ -1,89 +1,75 @@
 ---
 name: route
-description: Route queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity. Use when user wants cost-optimized model selection.
+description: Manually route a query to the optimal Claude model (Haiku/Sonnet/Opus)
 ---
 
-# Query Router
+# Manual Model Router
 
-Routes queries to the most cost-effective Claude model while maintaining quality.
+Override automatic model selection and force a specific Claude model for your query.
 
-## How It Works
+## Usage
 
-1. Analyze the query from $ARGUMENTS
-2. Classify complexity level
-3. Spawn the appropriate executor subagent
-4. Return the response with routing metadata
+```
+/route <model> <query>
+```
 
-## Classification Rules
-
-### fast (use fast-executor -> Haiku)
-Indicators:
-- Simple factual questions ("What is X?", "How do I Y?")
-- Code formatting, linting, prettifying
-- Git operations: status, log, diff, add, commit
-- JSON/YAML manipulation
-- Regex generation
-- File lookups and simple reads
-- Syntax questions
-
-### standard (use standard-executor -> Sonnet)
-Indicators:
-- Bug fixes ("fix", "error", "broken", "issue")
-- Feature implementation ("add", "implement", "create")
-- Code review
-- Refactoring ("refactor", "clean up", "improve")
-- Test writing
-- Documentation updates
-- Most typical coding tasks
-
-### deep (use deep-executor -> Opus)
-Indicators:
-- Architecture decisions ("architect", "design", "system")
-- Security audits ("security", "vulnerability", "audit")
-- Multi-file refactors ("across", "multiple files", "all components")
-- Trade-off analysis ("compare", "pros and cons", "trade-offs")
-- Performance optimization analysis
-- Complex debugging requiring deep reasoning
-- Extended thinking tasks
+Where `<model>` is one of:
+- `haiku` or `fast` - Use Haiku for simple, quick tasks
+- `sonnet` or `standard` - Use Sonnet for typical coding tasks
+- `opus` or `deep` - Use Opus for complex analysis
 
 ## Instructions
 
-Given the query in $ARGUMENTS:
+Parse $ARGUMENTS to extract the model and query:
 
-1. **Classify** - Determine if it's fast, standard, or deep based on the rules above
-2. **Explain** - Briefly state your classification and the key signals
-3. **Route** - Use the Task tool to spawn the appropriate subagent:
-   - fast -> spawn "fast-executor" subagent
-   - standard -> spawn "standard-executor" subagent
-   - deep -> spawn "deep-executor" subagent
-4. **Return** - Prefix the response with the routing info
+1. **Extract model** - The first word should be the model name (haiku/fast, sonnet/standard, opus/deep)
+2. **Extract query** - Everything after the model name is the query to execute
+3. **Validate** - If no valid model is specified, show usage help
+4. **Route** - Use the Task tool to spawn the appropriate subagent:
+   - haiku/fast -> spawn "fast-executor" subagent with model: haiku
+   - sonnet/standard -> spawn "standard-executor" subagent with model: sonnet
+   - opus/deep -> spawn "deep-executor" subagent with model: opus
+5. **Return** - Prefix the response with the model override info
 
-## Example Usage
+## Model Mapping
 
-User: `/route What's the syntax for a TypeScript interface?`
+| Argument | Executor | Model |
+|----------|----------|-------|
+| `haiku` or `fast` | fast-executor | Haiku |
+| `sonnet` or `standard` | standard-executor | Sonnet |
+| `opus` or `deep` | deep-executor | Opus |
 
-Classification: **fast**
-Signals: Simple syntax question, factual lookup
-Routing to: Haiku (fast-executor)
+## Examples
 
-[Spawns fast-executor with the query]
+### Force Opus for a simple question
+```
+/route opus What's the syntax for a TypeScript interface?
+```
+Result: Routes to Opus (deep-executor) regardless of query complexity.
 
----
+### Force Haiku for any task
+```
+/route haiku Fix the authentication bug in login.ts
+```
+Result: Routes to Haiku (fast-executor) for cost savings.
 
-User: `/route Fix the authentication bug in login.ts`
+### Force Sonnet explicitly
+```
+/route sonnet Design a caching system
+```
+Result: Routes to Sonnet (standard-executor).
 
-Classification: **standard**
-Signals: Bug fix, single file, typical coding task
-Routing to: Sonnet (standard-executor)
+## Error Handling
 
-[Spawns standard-executor with the query]
+If the user doesn't provide a valid model, respond with:
 
----
+```
+Usage: /route <model> <query>
 
-User: `/route Design a scalable caching system for this API`
+Models:
+  haiku, fast     - Quick, simple tasks (cheapest)
+  sonnet, standard - Typical coding tasks (default)
+  opus, deep      - Complex analysis (most capable)
 
-Classification: **deep**
-Signals: Architecture decision, system design, trade-offs
-Routing to: Opus (deep-executor)
-
-[Spawns deep-executor with the query]
+Example: /route opus Analyze the security of this authentication flow
+```
