@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/classify-prompt.py",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/classify-prompt.py",
             "timeout": 15
           }
         ]
