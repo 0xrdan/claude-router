@@ -328,7 +328,9 @@ Signals: {signals_str}
 ACTION REQUIRED: Use the Task tool to spawn the "{subagent}" subagent with the user's query.
 Do not handle this query directly - delegate to the subagent for cost-optimized execution."""
 
-    print(context)
+    # Output JSON for Claude Code hook
+    output = {"additionalContext": context}
+    print(json.dumps(output))
     sys.exit(0)
 
 
