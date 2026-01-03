@@ -2,6 +2,24 @@
 
 **Intelligent model routing for Claude Code** - Automatically routes queries to the optimal Claude model (Haiku/Sonnet/Opus) based on complexity, reducing costs by up to 98% without sacrificing quality.
 
+## What Makes This Novel
+
+This project fills a gap that no existing tool addresses:
+
+| What Exists | What Claude Router Does |
+|-------------|-------------------------|
+| Multi-provider routers (OpenRouter, etc.) | **Intra-Claude optimization** (Haiku/Sonnet/Opus) |
+| Manual `/model` switching | **Automatic routing** via UserPromptSubmit hook |
+| Generic LLM complexity scoring | **Coding-task specific** pattern recognition |
+| External API wrapper approach | **Native Claude Code integration** using subagents |
+
+### Technical Achievements
+
+1. **Discovered the right architecture** - Researched hooks, MCP, and subagents to find the only viable approach
+2. **Solved the hook integration** - UserPromptSubmit hook injects routing context that triggers subagent spawning
+3. **Optimized token overhead** - Minimal agent definitions reduced overhead by 70% (from 11.9k to 3.4k tokens)
+4. **Built hybrid classification** - Rule-based for speed, LLM fallback for accuracy
+
 ## The Problem
 
 When using Claude Code, you're typically on a single model:
@@ -17,14 +35,15 @@ When using Claude Code, you're typically on a single model:
 |--------|-------|
 | Classification latency | ~0ms (rule-based) or ~100ms (LLM fallback) |
 | Classification cost | $0 (rules) or ~$0.001 (Haiku fallback) |
+| Subagent token overhead | ~3.4k tokens (optimized) |
 | Cost savings (simple queries) | **~98%** (Haiku vs Opus) |
 | Cost savings (mixed workload) | **Est. 50-70%** |
 
-### Why This Matters: Three-Fold Savings
+## Why This Matters: Three-Fold Savings
 
 Intelligent routing creates a **win-win** for everyone:
 
-**1. Consumer Savings (API Costs)**
+### 1. Consumer Savings (API Costs)
 
 LLM pricing has two components, and you save on both:
 
@@ -39,7 +58,7 @@ For a typical query (1K input, 2K output tokens):
 - **Haiku cost:** $0.00025 + $0.0025 = **$0.00275**
 - **Your savings:** ~98%
 
-**2. Anthropic Savings (Compute Resources)**
+### 2. Anthropic Savings (Compute Resources)
 
 Haiku is a much smaller, faster model than Opus. When simple queries are routed to Haiku:
 - Less GPU compute required per request
@@ -47,7 +66,7 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 - More efficient resource allocation across Anthropic's infrastructure
 - Frees up Opus capacity for queries that genuinely need it
 
-**3. Better Developer Experience**
+### 3. Better Developer Experience
 
 - Simple queries get instant answers (Haiku is faster)
 - Complex queries get thorough analysis (Opus when needed)
@@ -169,25 +188,44 @@ Use the `/route` skill for explicit routing:
     └── route/                 # Manual /route skill
 ```
 
-## Why This Exists
+## Why Anthropic Should Care
 
-This project fills a gap that no existing tool addresses:
+1. **Validates their model lineup** - Proves Haiku/Sonnet/Opus tiering works in practice
+2. **Real usage data** - What % of coding queries actually need Opus?
+3. **Adoption driver** - Lower effective cost → more Claude Code usage
+4. **Reference implementation** - Could inform native routing features
+5. **Community showcase** - Open source tool built *for* their ecosystem
 
-| Existing Solutions | Claude Router |
-|-------------------|---------------|
-| Multi-provider routers (OpenRouter) | **Intra-Claude optimization** (Haiku/Sonnet/Opus) |
-| Manual `/model` switching | **Automatic routing** via hook |
-| Generic LLM complexity scoring | **Coding-task specific** patterns |
-| External API wrappers | **Native Claude Code integration** |
+## What Would Make People Use It
+
+1. **Zero-config start** - Works immediately with sensible defaults
+2. **Visible savings** - Show "You saved $X this session" (coming in Phase 4)
+3. **Trust through transparency** - Every routing decision is explained
+4. **Easy override** - `/route` skill for manual control when needed
+5. **Learns from feedback** - Future: adjust routing based on user overrides
 
 ## Roadmap
 
-- [x] Phase 1: Rule-based classification
-- [x] Phase 2: Hybrid classification (rules + Haiku LLM)
-- [x] Phase 3: Standalone repository (you're here!)
-- [ ] Phase 4: Usage statistics and savings tracker
-- [ ] Phase 5: Context-aware routing (files open, session history)
-- [ ] Phase 6: Learning from user overrides
+### Completed
+- [x] **Phase 1:** Rule-based classification (~0ms, $0)
+- [x] **Phase 2:** Hybrid classification (rules + Haiku LLM fallback)
+- [x] **Phase 3:** Standalone repository
+
+### Coming Soon
+- [ ] **Phase 4:** Usage statistics and savings tracker
+  - Persist routing decisions to `~/.claude/router-stats.json`
+  - `/router-stats` skill to show savings
+  - "You saved $X this session" summaries
+
+- [ ] **Phase 5:** Context-aware routing
+  - Factor in number of files open
+  - Consider session history and error patterns
+  - Adjust based on project complexity profile
+
+- [ ] **Phase 6:** Learning from feedback
+  - Track user overrides
+  - Adjust future routing based on patterns
+  - Per-project routing profiles
 
 ## Contributing
 
