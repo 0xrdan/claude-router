@@ -113,6 +113,9 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 
 # Update when new versions are released
 /plugin marketplace update claude-router-marketplace
+
+# Uninstall
+/plugin uninstall claude-router@claude-router-marketplace
 ```
 
 Or enable auto-update: `/plugin` → Marketplaces → Enable auto-update
@@ -129,6 +132,18 @@ curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh
 git clone https://github.com/0xrdan/claude-router.git
 cd claude-router
 ./install.sh
+```
+
+### Uninstall (Standalone)
+
+If you installed via Option 2 or 3, remove the files manually:
+
+```bash
+# If installed to project
+rm -rf .claude/hooks/classify-prompt.py .claude/agents .claude/skills
+
+# If installed globally
+rm -rf ~/.claude/hooks/classify-prompt.py ~/.claude/agents ~/.claude/skills
 ```
 
 ## Routing Rules
