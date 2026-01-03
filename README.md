@@ -109,7 +109,12 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 /plugin marketplace add 0xrdan/claude-router
 
 # Install the plugin
-/plugin install claude-router
+/plugin install claude-router@claude-router-marketplace
+```
+
+To update when repo changes:
+```bash
+/plugin marketplace update claude-router-marketplace
 ```
 
 ### Option 2: One-Command Install
