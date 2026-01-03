@@ -569,23 +569,21 @@ claude-router/
 - Configuration options
 - Roadmap / contributing
 
-**Deliverables:**
-- [ ] Create GitHub repo (`claude-router` or `claude-code-router`)
-- [ ] One-command install script
-- [ ] Compelling README with demo
-- [ ] GitHub release with proper versioning
+**Deliverables (Complete):**
+- [x] Create GitHub repo: https://github.com/0xrdan/claude-router
+- [x] One-command install script (`install.sh`)
+- [x] Compelling README with three-fold savings explanation
+- [x] GitHub release v0.1.0
 - [ ] Share on relevant communities (Claude Discord, HN, Reddit)
 - [ ] Blog post / demo video for visibility
 
-### Phase 4: Stats Tracking (First Feature PR)
+### Phase 4: Stats Tracking ✅ COMPLETE
 
-Add after standalone repo is live - demonstrates active development:
-
-**Features:**
-- [ ] Persist routing decisions to `~/.claude/router-stats.json`
-- [ ] `/router-stats` skill to show savings
-- [ ] Session stats: "You saved $X this session"
-- [ ] Cumulative stats: "Total savings this month: $XX (73%)"
+**Features (Complete):**
+- [x] Persist routing decisions to `~/.claude/router-stats.json`
+- [x] `/router-stats` skill to show savings
+- [x] Per-day session tracking with route distribution
+- [x] Estimated savings calculation vs always-Opus baseline
 
 **Why This Matters:**
 - "You saved 73% on Claude Code" screenshots drive adoption
@@ -665,6 +663,18 @@ This is the correct architecture: **Custom Skill → Classifier → Appropriate 
 
 ## Changelog
 
+### January 3, 2026 - Phase 4 Complete
+- Implemented stats tracking to `~/.claude/router-stats.json`
+- Created `/router-stats` skill to display savings
+- Per-day session tracking with route distribution
+- Established PR workflow (feature branches, never push to main)
+
+### January 3, 2026 - Phase 3 Complete
+- Extracted to standalone repo: https://github.com/0xrdan/claude-router
+- Created portable install.sh with project/global install options
+- Wrote compelling README with three-fold savings explanation
+- Published v0.1.0 release
+
 ### January 3, 2026 - Phase 2 Complete
 - Implemented hybrid classification (rules + Haiku LLM fallback)
 - Added authoritative routing directive ("ACTION REQUIRED")
@@ -688,5 +698,5 @@ This is the correct architecture: **Custom Skill → Classifier → Appropriate 
 ---
 
 *Last updated: January 3, 2026*
-*Status: Phase 2 Complete - Hybrid classification working*
-*Next: Phase 3 (standalone repo) → Phase 4 (stats tracking as first feature PR)*
+*Status: Phase 4 Complete - Stats tracking live*
+*Next: Phase 5 (context-aware routing) → Phase 6 (learning from feedback)*

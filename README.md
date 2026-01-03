@@ -102,13 +102,23 @@ Haiku is a much smaller, faster model than Opus. When simple queries are routed 
 
 ## Installation
 
-### One-Command Install
+### Option 1: Claude Code Plugin (Recommended)
+
+```bash
+# Add the marketplace (one-time)
+/plugin marketplace add 0xrdan/claude-router
+
+# Install the plugin
+/plugin install claude-router
+```
+
+### Option 2: One-Command Install
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh | bash
 ```
 
-### Manual Install
+### Option 3: Manual Install
 
 ```bash
 git clone https://github.com/0xrdan/claude-router.git
@@ -199,7 +209,7 @@ Use the `/route` skill for explicit routing:
 ## What Would Make People Use It
 
 1. **Zero-config start** - Works immediately with sensible defaults
-2. **Visible savings** - Show "You saved $X this session" (coming in Phase 4)
+2. **Visible savings** - Use `/router-stats` to see your cost savings
 3. **Trust through transparency** - Every routing decision is explained
 4. **Easy override** - `/route` skill for manual control when needed
 5. **Learns from feedback** - Future: adjust routing based on user overrides
@@ -210,13 +220,11 @@ Use the `/route` skill for explicit routing:
 - [x] **Phase 1:** Rule-based classification (~0ms, $0)
 - [x] **Phase 2:** Hybrid classification (rules + Haiku LLM fallback)
 - [x] **Phase 3:** Standalone repository
+- [x] **Phase 4:** Usage statistics and savings tracker
+  - Routing decisions logged to `~/.claude/router-stats.json`
+  - `/router-stats` skill shows savings and route distribution
 
 ### Coming Soon
-- [ ] **Phase 4:** Usage statistics and savings tracker
-  - Persist routing decisions to `~/.claude/router-stats.json`
-  - `/router-stats` skill to show savings
-  - "You saved $X this session" summaries
-
 - [ ] **Phase 5:** Context-aware routing
   - Factor in number of files open
   - Consider session history and error patterns
