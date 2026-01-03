@@ -215,8 +215,8 @@ def classify_by_rules(prompt: str) -> dict:
     if fast_signals:  # One fast signal
         return {"route": "fast", "confidence": 0.7, "signals": fast_signals, "method": "rules"}
 
-    # Default to standard with low confidence (triggers LLM fallback)
-    return {"route": "standard", "confidence": 0.5, "signals": ["no strong patterns"], "method": "rules"}
+    # Default to fast with low confidence - cheaper when uncertain
+    return {"route": "fast", "confidence": 0.5, "signals": ["no strong patterns"], "method": "rules"}
 
 
 def classify_by_llm(prompt: str, api_key: str) -> dict:
