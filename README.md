@@ -122,12 +122,10 @@ Run these commands in any Claude Code session:
 # Step 2: Install the plugin
 /plugin install claude-router@claude-router-marketplace
 
-# Step 3: Add enforcement to your CLAUDE.md (see "Enforcing Routing" section below)
-
-# Step 4: Restart Claude Code session to activate
+# Step 3: Restart Claude Code session to activate
 ```
 
-**Important:** After installing via marketplace, add the enforcement snippet to your project's `CLAUDE.md` file (see [Enforcing Routing](#enforcing-routing-recommended) section). This ensures Claude follows routing directives.
+That's it! The plugin automatically routes queries - no additional configuration needed.
 
 **Note:** The marketplace must be added in each project where you want to use Claude Router. Once added, updates are automatic.
 
@@ -149,7 +147,7 @@ curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh
 curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/uninstall.sh | bash
 ```
 
-**Note:** This method automatically sets up `CLAUDE.md` with routing enforcement.
+**Note:** This method automatically sets up `CLAUDE.md` (optional but harmless).
 
 ### Option 3: Manual Install
 
@@ -163,7 +161,7 @@ cd claude-router
 ./uninstall.sh
 ```
 
-**Note:** This method automatically sets up `CLAUDE.md` with routing enforcement.
+**Note:** This method automatically sets up `CLAUDE.md` (optional but harmless).
 
 ## Routing Rules
 
@@ -240,9 +238,12 @@ Models: `haiku`/`fast`, `sonnet`/`standard`, `opus`/`deep`
 - **Automatic**: The UserPromptSubmit hook classifies every query and injects routing context
 - **Manual Override**: Use `/route <model>` to bypass automatic classification and force a specific model (e.g., `/route opus` for complex reasoning, `/route haiku` for cost savings)
 
-### Enforcing Routing (Recommended)
+### CLAUDE.md Enforcement (Optional)
 
-By default, routing directives are advisory. To ensure Claude always follows routing decisions, add this to your project's `CLAUDE.md` file:
+The plugin works automatically without any configuration. However, if you experience inconsistent routing behavior, you can add explicit enforcement to your project's `CLAUDE.md` file:
+
+<details>
+<summary>Click to expand enforcement snippet</summary>
 
 ```markdown
 ## Claude Router Enforcement
@@ -261,7 +262,9 @@ Subagent mapping:
 Exceptions: Slash commands (`/route`, `/router-stats`) and questions about the router itself.
 ```
 
-This ensures Claude Code follows routing directives, maximizing your cost savings.
+</details>
+
+This is typically not needed - the hook's directive is explicit enough for Claude to follow.
 
 ## Project Structure
 
