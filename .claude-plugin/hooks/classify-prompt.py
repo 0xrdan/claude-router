@@ -331,7 +331,14 @@ Do NOT respond to the user directly. Do NOT skip this step. Delegate immediately
 Example:
 Task(subagent_type="claude-router:{subagent}", prompt="<user's query>", description="Route to {model}")"""
 
-    print(context)
+    # Output as JSON with hookSpecificOutput for proper injection
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "UserPromptSubmit",
+            "additionalContext": context
+        }
+    }
+    print(json.dumps(output))
     sys.exit(0)
 
 
