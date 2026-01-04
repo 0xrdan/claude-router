@@ -157,6 +157,47 @@ else
 EOF
 fi
 
+# Set up CLAUDE.md for routing enforcement
+CLAUDE_MD_CONTENT='## Claude Router Enforcement
+
+When you receive a `[Claude Router] MANDATORY ROUTING DIRECTIVE`, you MUST:
+
+1. Use the Task tool IMMEDIATELY to spawn the specified subagent
+2. Do NOT respond to the user directly - delegate to the subagent
+3. Pass the user'"'"'s original query in the prompt parameter
+
+Subagent mapping:
+- fast → `claude-router:fast-executor`
+- standard → `claude-router:standard-executor`
+- deep → `claude-router:deep-executor`
+
+Exceptions: Slash commands (`/route`, `/router-stats`) and questions about the router itself.'
+
+# Determine CLAUDE.md location based on install type
+if [ "$choice" = "1" ]; then
+    CLAUDE_MD_PATH="./CLAUDE.md"
+else
+    CLAUDE_MD_PATH="$HOME/CLAUDE.md"
+fi
+
+echo -e "${BLUE}Setting up routing enforcement...${NC}"
+
+if [ -f "$CLAUDE_MD_PATH" ]; then
+    # Check if already contains router enforcement
+    if grep -q "Claude Router Enforcement" "$CLAUDE_MD_PATH"; then
+        echo -e "${YELLOW}CLAUDE.md already contains router enforcement.${NC}"
+    else
+        # Append to existing CLAUDE.md
+        echo -e "${BLUE}Adding router enforcement to existing CLAUDE.md...${NC}"
+        echo "" >> "$CLAUDE_MD_PATH"
+        echo "$CLAUDE_MD_CONTENT" >> "$CLAUDE_MD_PATH"
+    fi
+else
+    # Create new CLAUDE.md
+    echo -e "${BLUE}Creating CLAUDE.md with router enforcement...${NC}"
+    echo "$CLAUDE_MD_CONTENT" > "$CLAUDE_MD_PATH"
+fi
+
 echo ""
 echo -e "${GREEN}╔═══════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║         Installation Complete!                ║${NC}"

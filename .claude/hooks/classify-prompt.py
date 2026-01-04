@@ -321,12 +321,15 @@ def main():
     model = model_map[route]
     signals_str = ", ".join(signals)
 
-    context = f"""[Claude Router] ROUTING DIRECTIVE
+    context = f"""[Claude Router] MANDATORY ROUTING DIRECTIVE
 Route: {route} | Model: {model} | Confidence: {confidence:.0%} | Method: {method}
 Signals: {signals_str}
 
-ACTION REQUIRED: Use the Task tool to spawn the "{subagent}" subagent with the user's query.
-Do not handle this query directly - delegate to the subagent for cost-optimized execution."""
+CRITICAL: You MUST use the Task tool NOW to spawn the "claude-router:{subagent}" subagent.
+Do NOT respond to the user directly. Do NOT skip this step. Delegate immediately.
+
+Example:
+Task(subagent_type="claude-router:{subagent}", prompt="<user's query>", description="Route to {model}")"""
 
     print(context)
     sys.exit(0)

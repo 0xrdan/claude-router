@@ -122,8 +122,12 @@ Run these commands in any Claude Code session:
 # Step 2: Install the plugin
 /plugin install claude-router@claude-router-marketplace
 
-# Step 3: Restart Claude Code session to activate
+# Step 3: Add enforcement to your CLAUDE.md (see "Enforcing Routing" section below)
+
+# Step 4: Restart Claude Code session to activate
 ```
+
+**Important:** After installing via marketplace, add the enforcement snippet to your project's `CLAUDE.md` file (see [Enforcing Routing](#enforcing-routing-recommended) section). This ensures Claude follows routing directives.
 
 **Note:** The marketplace must be added in each project where you want to use Claude Router. Once added, updates are automatic.
 
@@ -145,6 +149,8 @@ curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh
 curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/uninstall.sh | bash
 ```
 
+**Note:** This method automatically sets up `CLAUDE.md` with routing enforcement.
+
 ### Option 3: Manual Install
 
 ```bash
@@ -156,6 +162,8 @@ cd claude-router
 # Uninstall
 ./uninstall.sh
 ```
+
+**Note:** This method automatically sets up `CLAUDE.md` with routing enforcement.
 
 ## Routing Rules
 
@@ -185,11 +193,15 @@ cd claude-router
 ## Example Output
 
 ```
-[Claude Router] ROUTING DIRECTIVE
+[Claude Router] MANDATORY ROUTING DIRECTIVE
 Route: deep | Model: Opus | Confidence: 95% | Method: haiku-llm
 Signals: architecture, system design, trade-offs
 
-ACTION REQUIRED: Use the Task tool to spawn the "deep-executor" subagent...
+CRITICAL: You MUST use the Task tool NOW to spawn the "claude-router:deep-executor" subagent.
+Do NOT respond to the user directly. Do NOT skip this step. Delegate immediately.
+
+Example:
+Task(subagent_type="claude-router:deep-executor", prompt="<user's query>", description="Route to Opus")
 ```
 
 ## Configuration
@@ -227,6 +239,29 @@ Models: `haiku`/`fast`, `sonnet`/`standard`, `opus`/`deep`
 
 - **Automatic**: The UserPromptSubmit hook classifies every query and injects routing context
 - **Manual Override**: Use `/route <model>` to bypass automatic classification and force a specific model (e.g., `/route opus` for complex reasoning, `/route haiku` for cost savings)
+
+### Enforcing Routing (Recommended)
+
+By default, routing directives are advisory. To ensure Claude always follows routing decisions, add this to your project's `CLAUDE.md` file:
+
+```markdown
+## Claude Router Enforcement
+
+When you receive a `[Claude Router] MANDATORY ROUTING DIRECTIVE`, you MUST:
+
+1. Use the Task tool IMMEDIATELY to spawn the specified subagent
+2. Do NOT respond to the user directly - delegate to the subagent
+3. Pass the user's original query in the prompt parameter
+
+Subagent mapping:
+- fast → `claude-router:fast-executor`
+- standard → `claude-router:standard-executor`
+- deep → `claude-router:deep-executor`
+
+Exceptions: Slash commands (`/route`, `/router-stats`) and questions about the router itself.
+```
+
+This ensures Claude Code follows routing directives, maximizing your cost savings.
 
 ## Project Structure
 
