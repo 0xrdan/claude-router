@@ -289,65 +289,47 @@ def classify_hybrid(prompt: str) -> dict:
 def main():
     """Main hook handler."""
     try:
-        # Redirect stderr to suppress any warnings
-        sys.stderr = open(os.devnull, 'w')
+        input_data = json.load(sys.stdin)
+    except json.JSONDecodeError:
+        sys.exit(0)
 
-        try:
-            input_data = json.load(sys.stdin)
-        except json.JSONDecodeError:
-            sys.exit(0)
+    prompt = input_data.get("prompt", "")
 
-        prompt = input_data.get("prompt", "")
+    if not prompt or len(prompt) < 10:
+        sys.exit(0)
 
-        if not prompt or len(prompt) < 10:
-            sys.exit(0)
+    # Skip slash commands
+    if prompt.strip().startswith("/"):
+        sys.exit(0)
 
-        # Skip slash commands
-        if prompt.strip().startswith("/"):
-            sys.exit(0)
+    # Classify using hybrid approach
+    result = classify_hybrid(prompt)
 
-        # Classify using hybrid approach
-        result = classify_hybrid(prompt)
+    route = result["route"]
+    confidence = result["confidence"]
+    signals = result["signals"]
+    method = result.get("method", "rules")
 
-        route = result["route"]
-        confidence = result["confidence"]
-        signals = result["signals"]
-        method = result.get("method", "rules")
+    # Log routing decision to stats
+    log_routing_decision(route, confidence, method, signals)
 
-        # Log routing decision to stats (don't let this fail the hook)
-        try:
-            log_routing_decision(route, confidence, method, signals)
-        except Exception:
-            pass
+    # Map route to subagent and model
+    subagent_map = {"fast": "fast-executor", "standard": "standard-executor", "deep": "deep-executor"}
+    model_map = {"fast": "Haiku", "standard": "Sonnet", "deep": "Opus"}
 
-        # Map route to subagent and model
-        subagent_map = {"fast": "fast-executor", "standard": "standard-executor", "deep": "deep-executor"}
-        model_map = {"fast": "Haiku", "standard": "Sonnet", "deep": "Opus"}
+    subagent = subagent_map[route]
+    model = model_map[route]
+    signals_str = ", ".join(signals)
 
-        subagent = subagent_map[route]
-        model = model_map[route]
-        signals_str = ", ".join(signals)
-
-        context = f"""[Claude Router] ROUTING DIRECTIVE
+    context = f"""[Claude Router] ROUTING DIRECTIVE
 Route: {route} | Model: {model} | Confidence: {confidence:.0%} | Method: {method}
 Signals: {signals_str}
 
 ACTION REQUIRED: Use the Task tool to spawn the "{subagent}" subagent with the user's query.
 Do not handle this query directly - delegate to the subagent for cost-optimized execution."""
 
-        # Output JSON with hookSpecificOutput for transcript visibility
-        output = {
-            "hookSpecificOutput": {
-                "hookEventName": "UserPromptSubmit",
-                "additionalContext": context
-            }
-        }
-        print(json.dumps(output))
-        sys.exit(0)
-
-    except Exception:
-        # Any error: exit silently
-        sys.exit(0)
+    print(context)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
