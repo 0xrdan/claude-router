@@ -1,6 +1,6 @@
 {
   "name": "claude-router",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity",
   "author": {
     "name": "Dan Monteiro"
@@ -20,6 +20,5 @@
   ],
   "skills": [
     "./skills/route/SKILL.md"
-  ],
-  "hooks": "./hooks/hooks.json"
+  ]
 }
