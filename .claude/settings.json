@@ -1,15 +1,5 @@
 {
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/classify-prompt.py",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
+  "enabledPlugins": {
+    "claude-router@claude-router-marketplace": true
   }
 }
