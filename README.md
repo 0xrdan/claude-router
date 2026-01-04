@@ -230,17 +230,20 @@ Models: `haiku`/`fast`, `sonnet`/`standard`, `opus`/`deep`
 
 ```
 claude-router/
-├── hooks/
-│   └── classify-prompt.py     # Hybrid classifier (auto-routing)
-├── commands/
-│   ├── route.md               # /route command
-│   └── router-stats.md        # /router-stats command
-├── agents/
-│   ├── fast-executor.md       # Haiku agent
-│   ├── standard-executor.md   # Sonnet agent
-│   └── deep-executor.md       # Opus agent
-└── skills/
-    └── route/                 # Auto-invoked routing skill
+├── .claude/                       # Manual install files
+│   ├── hooks/
+│   │   └── classify-prompt.py     # Hybrid classifier (auto-routing)
+│   ├── agents/
+│   │   ├── fast-executor/         # Haiku agent
+│   │   ├── standard-executor/     # Sonnet agent
+│   │   └── deep-executor/         # Opus agent
+│   └── skills/
+│       └── route/                 # Manual routing skill
+├── hooks/                         # Marketplace plugin files
+│   ├── classify-prompt.py         # Same classifier (synced)
+│   └── hooks.json                 # Plugin hook config
+├── install.sh                     # Installation script
+└── uninstall.sh                   # Uninstallation script
 ```
 
 ## Why Anthropic Should Care
