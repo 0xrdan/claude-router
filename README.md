@@ -109,6 +109,8 @@ For Claude Pro and Max subscribers, intelligent routing means:
 
 ## Installation
 
+**Note:** Choose only ONE installation method. If switching between methods, uninstall the previous one first to avoid conflicts.
+
 ### Option 1: Claude Code Plugin (Recommended)
 
 Run these commands in any Claude Code session:

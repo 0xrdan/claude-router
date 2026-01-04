@@ -4,6 +4,8 @@ Thank you for your interest in contributing to Claude Router! This document prov
 
 ## Getting Started
 
+**Note:** If you have the plugin installed, uninstall it first (`/plugin uninstall claude-router@claude-router-marketplace`) before running `./install.sh` to avoid conflicts. The plugin and manual install methods are mutually exclusive.
+
 1. Fork the repository
 2. Clone your fork:
    ```bash

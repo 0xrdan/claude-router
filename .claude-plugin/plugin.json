@@ -20,5 +20,6 @@
   ],
   "skills": [
     "./skills/route/SKILL.md"
-  ]
+  ],
+  "hooks": "../hooks/hooks.json"
 }
