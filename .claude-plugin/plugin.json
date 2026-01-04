@@ -1,6 +1,6 @@
 {
   "name": "claude-router",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity",
   "author": {
     "name": "Dan Monteiro"
@@ -9,6 +9,7 @@
   "repository": "https://github.com/0xrdan/claude-router",
   "license": "MIT",
   "keywords": ["routing", "model-selection", "cost-optimization", "haiku", "sonnet", "opus"],
+  "hooks": "./hooks/hooks.json",
   "agents": [
     "./agents/fast-executor.md",
     "./agents/standard-executor.md",
