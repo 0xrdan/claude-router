@@ -13,7 +13,23 @@ import os
 import re
 from pathlib import Path
 from datetime import datetime
-import fcntl
+# Cross-platform file locking
+import platform
+if platform.system() == "Windows":
+    import msvcrt
+    def lock_file(f, exclusive=False):
+        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK if exclusive else msvcrt.LK_LOCK, 1)
+    def unlock_file(f):
+        try:
+            msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+        except OSError:
+            pass
+else:
+    import fcntl
+    def lock_file(f, exclusive=False):
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+    def unlock_file(f):
+        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
 # Confidence threshold for LLM fallback
 CONFIDENCE_THRESHOLD = 0.7
@@ -131,9 +147,9 @@ def log_routing_decision(route: str, confidence: float, method: str, signals: li
         if STATS_FILE.exists():
             try:
                 with open(STATS_FILE, "r") as f:
-                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+                    lock_file(f, exclusive=False)
                     stats = json.load(f)
-                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                    unlock_file(f)
             except (json.JSONDecodeError, IOError):
                 pass
 
@@ -175,9 +191,9 @@ def log_routing_decision(route: str, confidence: float, method: str, signals: li
 
         # Write stats atomically
         with open(STATS_FILE, "w") as f:
-            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            lock_file(f, exclusive=True)
             json.dump(stats, f, indent=2)
-            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            unlock_file(f)
 
     except Exception:
         # Don't fail the hook if stats logging fails
