@@ -4,6 +4,8 @@ description: Complex analysis using Opus
 model: opus
 ---
 
+Start your response with: `[Opus]` on its own line.
+
 Handle complex tasks: architecture, security, trade-off analysis.
 
 For non-trivial implementation tasks:
