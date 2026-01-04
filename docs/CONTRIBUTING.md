@@ -22,15 +22,17 @@ Thank you for your interest in contributing to Claude Router! This document prov
 The project structure is straightforward:
 
 ```
-.claude/
+claude-router/
 ├── hooks/
 │   └── classify-prompt.py    # Main classifier logic
 ├── agents/
-│   ├── fast-executor/        # Haiku agent
-│   ├── standard-executor/    # Sonnet agent
-│   └── deep-executor/        # Opus agent
-└── skills/
-    └── route/                # Manual /route skill
+│   ├── fast-executor.md      # Haiku agent
+│   ├── standard-executor.md  # Sonnet agent
+│   └── deep-executor.md      # Opus agent
+├── skills/
+│   ├── route/                # Manual /route skill
+│   └── router-stats/         # Stats display skill
+└── .claude-plugin/           # Marketplace plugin files
 ```
 
 ### Testing Changes
@@ -44,7 +46,7 @@ To test your changes:
 ### Testing the Classifier Directly
 
 ```bash
-echo '{"prompt": "What is the syntax for a Python list?"}' | python3 .claude/hooks/classify-prompt.py
+echo '{"prompt": "What is the syntax for a Python list?"}' | python3 hooks/classify-prompt.py
 ```
 
 ## Areas for Contribution

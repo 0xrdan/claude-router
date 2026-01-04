@@ -456,17 +456,17 @@ User query → Hook classifies (instant, free) → Context injected → Subagent
 
 **Files Created:**
 ```
-.claude/
-├── settings.json              # Hook configuration
+claude-router/
 ├── hooks/
-│   ├── classify-prompt.py     # Rule-based classifier
-│   └── venv/                  # Python dependencies
+│   └── classify-prompt.py     # Hybrid classifier
 ├── agents/
-│   ├── fast-executor/AGENT.md    # Haiku
-│   ├── standard-executor/AGENT.md # Sonnet
-│   └── deep-executor/AGENT.md    # Opus
-└── skills/
-    └── route/SKILL.md         # Manual /route skill (backup)
+│   ├── fast-executor.md       # Haiku
+│   ├── standard-executor.md   # Sonnet
+│   └── deep-executor.md       # Opus
+├── skills/
+│   ├── route/SKILL.md         # Manual /route skill
+│   └── router-stats/SKILL.md  # Stats display skill
+└── .claude-plugin/            # Marketplace plugin files
 ```
 
 **Key Findings:**
@@ -663,6 +663,13 @@ This is the correct architecture: **Custom Skill → Classifier → Appropriate 
 
 ## Changelog
 
+### January 4, 2026 - v1.1.0 Release
+- Fixed hook output format: JSON `hookSpecificOutput` for proper context injection
+- Simplified installation: CLAUDE.md enforcement no longer required
+- Restructured project: consolidated source files, eliminated duplicate directories
+- Updated install.sh to use root-level source files
+- Published to Claude Code marketplace as plugin
+
 ### January 3, 2026 - Phase 4 Complete
 - Implemented stats tracking to `~/.claude/router-stats.json`
 - Created `/router-stats` skill to display savings
@@ -697,6 +704,6 @@ This is the correct architecture: **Custom Skill → Classifier → Appropriate 
 
 ---
 
-*Last updated: January 3, 2026*
-*Status: Phase 4 Complete - Stats tracking live*
+*Last updated: January 4, 2026*
+*Status: v1.1.0 - Marketplace plugin stable*
 *Next: Phase 5 (context-aware routing) → Phase 6 (learning from feedback)*

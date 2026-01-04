@@ -60,26 +60,29 @@ mkdir -p "$INSTALL_PATH/agents/fast-executor"
 mkdir -p "$INSTALL_PATH/agents/standard-executor"
 mkdir -p "$INSTALL_PATH/agents/deep-executor"
 mkdir -p "$INSTALL_PATH/skills/route"
+mkdir -p "$INSTALL_PATH/skills/router-stats"
 
 # Copy files
 echo -e "${BLUE}Copying router files...${NC}"
 
 # Check if running from cloned repo or via curl
-if [ -f "$SCRIPT_DIR/.claude/hooks/classify-prompt.py" ]; then
-    # Running from cloned repo
-    cp "$SCRIPT_DIR/.claude/hooks/classify-prompt.py" "$INSTALL_PATH/hooks/"
-    cp "$SCRIPT_DIR/.claude/agents/fast-executor/AGENT.md" "$INSTALL_PATH/agents/fast-executor/"
-    cp "$SCRIPT_DIR/.claude/agents/standard-executor/AGENT.md" "$INSTALL_PATH/agents/standard-executor/"
-    cp "$SCRIPT_DIR/.claude/agents/deep-executor/AGENT.md" "$INSTALL_PATH/agents/deep-executor/"
-    cp "$SCRIPT_DIR/.claude/skills/route/SKILL.md" "$INSTALL_PATH/skills/route/"
+if [ -f "$SCRIPT_DIR/hooks/classify-prompt.py" ]; then
+    # Running from cloned repo - use root-level source files
+    cp "$SCRIPT_DIR/hooks/classify-prompt.py" "$INSTALL_PATH/hooks/"
+    cp "$SCRIPT_DIR/agents/fast-executor.md" "$INSTALL_PATH/agents/fast-executor/AGENT.md"
+    cp "$SCRIPT_DIR/agents/standard-executor.md" "$INSTALL_PATH/agents/standard-executor/AGENT.md"
+    cp "$SCRIPT_DIR/agents/deep-executor.md" "$INSTALL_PATH/agents/deep-executor/AGENT.md"
+    cp "$SCRIPT_DIR/skills/route/SKILL.md" "$INSTALL_PATH/skills/route/"
+    cp "$SCRIPT_DIR/skills/router-stats/SKILL.md" "$INSTALL_PATH/skills/router-stats/"
 else
-    # Running via curl - download files from GitHub
+    # Running via curl - download from GitHub root-level sources
     BASE_URL="https://raw.githubusercontent.com/0xrdan/claude-router/main"
-    curl -sL "$BASE_URL/.claude/hooks/classify-prompt.py" -o "$INSTALL_PATH/hooks/classify-prompt.py"
-    curl -sL "$BASE_URL/.claude/agents/fast-executor/AGENT.md" -o "$INSTALL_PATH/agents/fast-executor/AGENT.md"
-    curl -sL "$BASE_URL/.claude/agents/standard-executor/AGENT.md" -o "$INSTALL_PATH/agents/standard-executor/AGENT.md"
-    curl -sL "$BASE_URL/.claude/agents/deep-executor/AGENT.md" -o "$INSTALL_PATH/agents/deep-executor/AGENT.md"
-    curl -sL "$BASE_URL/.claude/skills/route/SKILL.md" -o "$INSTALL_PATH/skills/route/SKILL.md"
+    curl -sL "$BASE_URL/hooks/classify-prompt.py" -o "$INSTALL_PATH/hooks/classify-prompt.py"
+    curl -sL "$BASE_URL/agents/fast-executor.md" -o "$INSTALL_PATH/agents/fast-executor/AGENT.md"
+    curl -sL "$BASE_URL/agents/standard-executor.md" -o "$INSTALL_PATH/agents/standard-executor/AGENT.md"
+    curl -sL "$BASE_URL/agents/deep-executor.md" -o "$INSTALL_PATH/agents/deep-executor/AGENT.md"
+    curl -sL "$BASE_URL/skills/route/SKILL.md" -o "$INSTALL_PATH/skills/route/SKILL.md"
+    curl -sL "$BASE_URL/skills/router-stats/SKILL.md" -o "$INSTALL_PATH/skills/router-stats/SKILL.md"
 fi
 
 # Make classifier executable
