@@ -1,6 +1,7 @@
 ---
 name: route
 description: Manually route a query to the optimal Claude model (Haiku/Sonnet/Opus)
+user_invokable: true
 ---
 
 # Manual Model Router

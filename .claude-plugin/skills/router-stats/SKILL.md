@@ -1,6 +1,7 @@
 ---
 name: router-stats
 description: Display Claude Router usage statistics and cost savings
+user_invokable: true
 ---
 
 # Router Stats
