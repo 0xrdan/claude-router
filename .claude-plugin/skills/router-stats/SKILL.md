@@ -74,5 +74,5 @@ Route Distribution:
 ## Notes
 
 - Savings are calculated assuming Opus would have been used for all queries
-- Cost estimates use: Haiku $0.25/$1.25, Sonnet $3/$15, Opus $15/$75 per 1M tokens
+- Cost estimates use: Haiku 4.5 $1/$5, Sonnet 4.5 $3/$15, Opus 4.5 $5/$25 per 1M tokens
 - Average query estimated at 1K input + 2K output tokens

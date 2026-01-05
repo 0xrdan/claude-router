@@ -18,7 +18,7 @@ This project fills a gap that no existing tool addresses:
 1. **First of its kind** - No existing tool optimizes routing *within* the Claude model family for coding workflows
 2. **Native integration** - Uses Claude Code's own subagent system, not external wrappers
 3. **Zero-overhead classification** - Rule-based patterns mean instant, free routing decisions
-4. **Significant cost savings** - 98% reduction on simple queries (Haiku vs Opus)
+4. **Significant cost savings** - 80% reduction on simple queries (Haiku vs Opus)
 
 ### Key Metrics (Phase 1)
 
@@ -27,7 +27,7 @@ This project fills a gap that no existing tool addresses:
 | Classification latency | ~0ms (rule-based) |
 | Classification cost | $0 (no API call) |
 | Subagent token overhead | 3.4k tokens (optimized from 11.9k) |
-| Cost savings (simple queries) | ~98% (Haiku vs Opus) |
+| Cost savings (simple queries) | ~80% (Haiku vs Opus) |
 | Cost savings (mixed workload) | Est. 50-70% |
 
 ### Technical Achievements
@@ -43,9 +43,9 @@ Route queries to the most cost-effective Claude model while maintaining quality:
 
 | Route | Model | Use Case | Cost (per 1M tokens) |
 |-------|-------|----------|---------------------|
-| fast | Haiku | Simple questions, lookups, formatting | $0.25 / $1.25 |
-| standard | Sonnet | Most coding tasks, analysis | $3 / $15 |
-| deep | Opus | Complex architecture, multi-step reasoning | $15 / $75 |
+| fast | Haiku 4.5 | Simple questions, lookups, formatting | $1 / $5 |
+| standard | Sonnet 4.5 | Most coding tasks, analysis | $3 / $15 |
+| deep | Opus 4.5 | Complex architecture, multi-step reasoning | $5 / $25 |
 
 **Goal:** Reduce costs by 50-70% by avoiding Opus for queries that don't need it.
 
@@ -472,7 +472,7 @@ claude-router/
 **Key Findings:**
 - Rule-based classification: ~0ms, zero cost
 - Subagent token overhead: ~3.4k tokens (optimized from 11.9k)
-- Even with overhead, Haiku routing saves ~98% vs Opus for simple queries
+- Even with overhead, Haiku routing saves ~80% vs Opus for simple queries
 
 **Classification Patterns Implemented:**
 ```python
@@ -564,7 +564,7 @@ claude-router/
 - Problem statement (the gap in the market)
 - One-command install: `curl -sSL .../install.sh | bash`
 - Demo GIF showing routing in action
-- Key metrics table (98% savings, 0ms latency, 3.4k tokens)
+- Key metrics table (80% savings, 0ms latency, 3.4k tokens)
 - How it works (architecture diagram)
 - Configuration options
 - Roadmap / contributing
