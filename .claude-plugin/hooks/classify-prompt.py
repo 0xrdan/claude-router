@@ -23,9 +23,9 @@ STATS_FILE = Path.home() / ".claude" / "router-stats.json"
 
 # Cost estimates per 1M tokens (input/output)
 COST_PER_1M = {
-    "fast": {"input": 0.25, "output": 1.25},      # Haiku
-    "standard": {"input": 3.0, "output": 15.0},   # Sonnet
-    "deep": {"input": 15.0, "output": 75.0},      # Opus
+    "fast": {"input": 1.0, "output": 5.0},        # Haiku 4.5
+    "standard": {"input": 3.0, "output": 15.0},   # Sonnet 4.5
+    "deep": {"input": 5.0, "output": 25.0},       # Opus 4.5
 }
 
 # Average tokens per query (rough estimate)

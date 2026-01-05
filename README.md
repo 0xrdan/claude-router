@@ -1,6 +1,6 @@
 # Claude Router
 
-**Intelligent model routing for Claude Code** - Automatically routes queries to the optimal Claude model (Haiku/Sonnet/Opus) based on complexity, reducing costs by up to 98% without sacrificing quality.
+**Intelligent model routing for Claude Code** - Automatically routes queries to the optimal Claude model (Haiku/Sonnet/Opus) based on complexity, reducing costs by up to 80% without sacrificing quality.
 
 ## What Makes This Novel
 
@@ -36,7 +36,7 @@ When using Claude Code, you're typically on a single model:
 | Classification latency | ~0ms (rule-based) or ~100ms (LLM fallback) |
 | Classification cost | $0 (rules) or ~$0.001 (Haiku fallback) |
 | Subagent token overhead | ~3.4k tokens (optimized) |
-| Cost savings (simple queries) | **~98%** (Haiku vs Opus) |
+| Cost savings (simple queries) | **~80%** (Haiku vs Opus) |
 | Cost savings (mixed workload) | **Est. 50-70%** |
 
 ## Why This Matters: Three-Fold Savings
@@ -49,14 +49,14 @@ LLM pricing has two components, and you save on both:
 
 | Model | Input (per 1M tokens) | Output (per 1M tokens) |
 |-------|----------------------|------------------------|
-| Haiku | $0.25 | $1.25 |
-| Sonnet | $3 | $15 |
-| Opus | $15 | $75 |
+| Haiku 4.5 | $1 | $5 |
+| Sonnet 4.5 | $3 | $15 |
+| Opus 4.5 | $5 | $25 |
 
 For a typical query (1K input, 2K output tokens):
-- **Opus cost:** $0.015 + $0.15 = **$0.165**
-- **Haiku cost:** $0.00025 + $0.0025 = **$0.00275**
-- **Your savings:** ~98%
+- **Opus 4.5 cost:** $0.005 + $0.05 = **$0.055**
+- **Haiku 4.5 cost:** $0.001 + $0.01 = **$0.011**
+- **Your savings:** ~80%
 
 ### 2. Anthropic Savings (Compute Resources)
 
@@ -101,7 +101,7 @@ For Claude Pro and Max subscribers, intelligent routing means:
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐                 │
 │  │   fast    │ │ standard  │ │   deep    │                 │
 │  │  (Haiku)  │ │ (Sonnet)  │ │  (Opus)   │                 │
-│  │   $0.25   │ │    $3     │ │   $15     │  per 1M input   │
+│  │    $1     │ │    $3     │ │    $5     │  per 1M input   │
 │  └───────────┘ └───────────┘ └───────────┘                 │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘

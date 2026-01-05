@@ -65,7 +65,7 @@ Route Distribution:
 Value Metrics:
   Estimated Savings: $12.50 (vs always using Opus)
   Estimated Tokens Saved: ~2.7M tokens
-  Avg Cost per Query: $0.04 (vs $0.165 with Opus)
+  Avg Cost per Query: $0.02 (vs $0.055 with Opus 4.5)
 
 Today
 -----
@@ -92,8 +92,8 @@ If you're on Claude Pro or Max, these metrics translate to real benefits:
 ## Cost Reference
 
 Model pricing per 1M tokens (input/output):
-- Haiku: $0.25 / $1.25
-- Sonnet: $3 / $15
-- Opus: $15 / $75
+- Haiku 4.5: $1 / $5
+- Sonnet 4.5: $3 / $15
+- Opus 4.5: $5 / $25
 
-Average query estimated at 1K input + 2K output tokens (~$0.165 with Opus).
+Average query estimated at 1K input + 2K output tokens (~$0.055 with Opus 4.5).
