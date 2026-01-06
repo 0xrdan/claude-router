@@ -94,15 +94,6 @@ Claude Router adds **cost-aware routing at every level**:
 
 **TL;DR**: Opus 4.5 is great at *what* to delegate. Claude Router adds *cost-aware* delegation - ensuring cheap work uses cheap models.
 
-## The Problem
-
-When using Claude Code, you're typically on a single model:
-- **Always Opus?** You're overpaying 5x for simple queries
-- **Always Sonnet?** Complex architecture tasks may need deeper reasoning
-- **Manual switching?** Tedious and requires knowing which model fits
-
-**Claude Router solves this** by automatically analyzing each query and routing it to the most cost-effective model.
-
 ## Key Metrics
 
 | Metric | Value |
@@ -155,32 +146,6 @@ For Claude Pro and Max subscribers, intelligent routing means:
 - **Faster responses** - Haiku responds 3-5x faster than Opus
 
 **The result:** You pay less (or extend your subscription further), Anthropic uses fewer resources, and everyone gets appropriately-powered responses. This is sustainable AI usage.
-
-## How It Works
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   Your Query                                │
-│                       │                                     │
-│                       ▼                                     │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │          UserPromptSubmit Hook                         │ │
-│  │          (classify-prompt.py)                          │ │
-│  │                                                        │ │
-│  │  1. Rule-based patterns (instant, free)                │ │
-│  │  2. Haiku LLM fallback (for edge cases, ~$0.001)       │ │
-│  └───────────────────────────────────────────────────────┘ │
-│                       │                                     │
-│         ┌─────────────┼─────────────┐                       │
-│         ▼             ▼             ▼                       │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐                 │
-│  │   fast    │ │ standard  │ │   deep    │                 │
-│  │  (Haiku)  │ │ (Sonnet)  │ │  (Opus)   │                 │
-│  │    $1     │ │    $3     │ │    $5     │  per 1M input   │
-│  └───────────┘ └───────────┘ └───────────┘                 │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
 
 ## Installation
 
@@ -248,33 +213,48 @@ cd claude-router
 - Regex generation
 - Syntax questions
 
-### Standard Route (Sonnet) - Typical coding
-- Bug fixes
-- Feature implementation
-- Code review
-- Refactoring
+### Standard Route (Sonnet) - Typical coding + Tool-intensive tasks
+- Bug fixes and feature implementation
+- Code review and refactoring
 - Test writing
+- **Tool-intensive tasks** (v1.2): Codebase searches, running tests, multi-file edits
+- **Orchestration tasks** (v1.2): Multi-step workflows
 
 ### Deep Route (Opus) - Complex tasks
 - Architecture decisions
 - Security audits
-- Multi-file refactors
 - Trade-off analysis
 - Performance optimization
 - System design
 
+### Opus Orchestrator (v1.2) - Complex + Tool-intensive
+When a query is both architecturally complex AND tool-intensive:
+- Opus handles strategy and synthesis
+- Delegates file reads/searches to Haiku
+- Delegates implementations to Sonnet
+- ~40% cost savings on complex workflows
+
 ## Example Output
 
+**Simple query → Haiku:**
 ```
 [Claude Router] MANDATORY ROUTING DIRECTIVE
-Route: deep | Model: Opus | Confidence: 95% | Method: haiku-llm
-Signals: architecture, system design, trade-offs
+Route: fast | Model: Haiku | Confidence: 90% | Method: rules
+Signals: what is, json
+```
 
-CRITICAL: You MUST use the Task tool NOW to spawn the "claude-router:deep-executor" subagent.
-Do NOT respond to the user directly. Do NOT skip this step. Delegate immediately.
+**Tool-intensive query → Sonnet (v1.2):**
+```
+[Claude Router] MANDATORY ROUTING DIRECTIVE
+Route: standard | Model: Sonnet | Confidence: 85% | Method: rules | Tool-intensive: Yes
+Signals: find all, across the codebase
+```
 
-Example:
-Task(subagent_type="claude-router:deep-executor", prompt="<user's query>", description="Route to Opus")
+**Complex + Tool-intensive → Opus Orchestrator (v1.2):**
+```
+[Claude Router] MANDATORY ROUTING DIRECTIVE
+Route: deep | Model: Opus (Orchestrator) | Confidence: 95% | Method: rules | Tool-intensive: Yes | Orchestration: Yes
+Signals: architecture, refactor across the entire codebase
 ```
 
 ## Configuration
@@ -345,18 +325,21 @@ This is typically not needed - the hook's directive is explicit enough for Claud
 
 ```
 claude-router/
-├── .claude/                       # Manual install files
-│   ├── hooks/
-│   │   └── classify-prompt.py     # Hybrid classifier (auto-routing)
+├── .claude-plugin/                # Plugin files (marketplace distribution)
 │   ├── agents/
-│   │   ├── fast-executor/         # Haiku agent
-│   │   ├── standard-executor/     # Sonnet agent
-│   │   └── deep-executor/         # Opus agent
-│   └── skills/
-│       └── route/                 # Manual routing skill
-├── hooks/                         # Marketplace plugin files
-│   ├── classify-prompt.py         # Same classifier (synced)
-│   └── hooks.json                 # Plugin hook config
+│   │   ├── fast-executor.md       # Haiku agent
+│   │   ├── standard-executor.md   # Sonnet agent
+│   │   ├── deep-executor.md       # Opus agent
+│   │   └── opus-orchestrator.md   # Opus orchestrator (v1.2)
+│   ├── hooks/
+│   │   └── classify-prompt.py     # Hybrid classifier
+│   ├── skills/
+│   │   ├── route/                 # Manual routing skill
+│   │   └── router-stats/          # Statistics skill
+│   └── plugin.json                # Plugin manifest
+├── agents/                        # Source agent definitions
+├── hooks/                         # Source hook scripts
+├── skills/                        # Source skills
 ├── install.sh                     # Installation script
 └── uninstall.sh                   # Uninstallation script
 ```
@@ -388,15 +371,14 @@ claude-router/
   - `/route <model>` command for manual model override
   - Plugin marketplace distribution
   - Subscriber benefits (extended limits, longer sessions)
-
-### Coming Soon
-- [ ] **Phase 5:** Tool-Aware Routing & Hybrid Delegation
+- [x] **Phase 5:** Tool-Aware Routing & Hybrid Delegation (v1.2.0)
   - Tool-intensity pattern detection (file scanning, multi-file edits, test runs)
   - Opus Orchestrator mode for complex multi-step tasks
   - Smart delegation: Opus handles strategy, spawns Haiku/Sonnet for subtasks
   - Escalation paths: Sonnet can recommend Opus for architectural decisions
   - Enhanced cost tracking with delegation metrics (~40% additional savings)
 
+### Coming Soon
 - [ ] **Phase 6:** Context-Aware Session Routing
   - Cache classifications for similar queries
   - Factor in session tool history
