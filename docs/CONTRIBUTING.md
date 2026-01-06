@@ -4,18 +4,14 @@ Thank you for your interest in contributing to Claude Router! This document prov
 
 ## Getting Started
 
-**Note:** If you have the plugin installed, uninstall it first (`/plugin uninstall claude-router@claude-router-marketplace`) before running `./install.sh` to avoid conflicts. The plugin and manual install methods are mutually exclusive.
-
 1. Fork the repository
 2. Clone your fork:
    ```bash
    git clone https://github.com/YOUR_USERNAME/claude-router.git
    cd claude-router
    ```
-3. Install locally:
-   ```bash
-   ./install.sh  # Choose option 1 for project install
-   ```
+3. Make your changes to files in the repository
+4. Test your changes (see Testing below)
 
 ## Development Setup
 
