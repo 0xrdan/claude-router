@@ -14,18 +14,21 @@ Read the stats file at `~/.claude/router-stats.json` and present the data in a c
 
 ## Data Format
 
-The stats file contains:
+The stats file contains (v1.1 schema):
 ```json
 {
-  "version": "1.0",
+  "version": "1.1",
   "total_queries": 100,
-  "routes": {"fast": 30, "standard": 60, "deep": 10},
+  "routes": {"fast": 30, "standard": 50, "deep": 10, "orchestrated": 10},
+  "tool_intensive_queries": 25,
+  "orchestrated_queries": 10,
   "estimated_savings": 12.50,
+  "delegation_savings": 2.50,
   "sessions": [
     {
       "date": "2026-01-03",
       "queries": 25,
-      "routes": {"fast": 8, "standard": 15, "deep": 2},
+      "routes": {"fast": 8, "standard": 12, "deep": 2, "orchestrated": 3},
       "savings": 3.20
     }
   ],
@@ -47,12 +50,21 @@ Present the stats like this:
 Total Queries Routed: 100
 
 Route Distribution:
-  Fast (Haiku):     30 (30%)  ████████░░░░░░░░░░░░
-  Standard (Sonnet): 60 (60%)  ████████████████░░░░
-  Deep (Opus):      10 (10%)  ████░░░░░░░░░░░░░░░░
+  Fast (Haiku):       30 (30%)  ████████░░░░░░░░░░░░
+  Standard (Sonnet):  50 (50%)  ██████████████░░░░░░
+  Deep (Opus):        10 (10%)  ████░░░░░░░░░░░░░░░░
+  Orchestrated:       10 (10%)  ████░░░░░░░░░░░░░░░░
 
-💰 Estimated Savings: $12.50
-   (compared to always using Opus)
+🔧 Tool-Aware Routing
+───────────────────────────────────────────────────
+Tool-Intensive Queries: 25 (25%)
+Orchestrated Queries:   10 (10%)
+
+💰 Cost Savings
+───────────────────────────────────────────────────
+Estimated Savings:   $12.50  (compared to always using Opus)
+Delegation Savings:  $2.50   (from hybrid delegation)
+Total Savings:       $15.00
 
 📅 Today (2026-01-03)
 ───────────────────────────────────────────────────
@@ -60,7 +72,7 @@ Queries: 25
 Savings: $3.20
 
 Route Distribution:
-  Fast: 8 | Standard: 15 | Deep: 2
+  Fast: 8 | Standard: 12 | Deep: 2 | Orchestrated: 3
 ```
 
 ## Steps
