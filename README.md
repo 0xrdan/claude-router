@@ -20,6 +20,80 @@ This project fills a gap that no existing tool addresses:
 3. **Optimized token overhead** - Minimal agent definitions reduced overhead by 70% (from 11.9k to 3.4k tokens)
 4. **Built hybrid classification** - Rule-based for speed, LLM fallback for accuracy
 
+## Claude Code: Default vs With Router
+
+### Default Behavior (Even with Opus 4.5)
+
+Opus 4.5 is excellent at using tools and spawning subagents - but there's a catch:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     DEFAULT CLAUDE CODE (Opus 4.5)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  User: "Refactor the auth system across all files"                          │
+│                                                                              │
+│  OPUS receives query                                                         │
+│    ├─► OPUS spawns Explore agent ──► runs as OPUS ($$$)                     │
+│    ├─► OPUS spawns Plan agent ────► runs as OPUS ($$$)                      │
+│    ├─► OPUS reads files ──────────► OPUS doing simple reads ($$$)           │
+│    └─► OPUS makes edits ──────────► OPUS for each file ($$$)                │
+│                                                                              │
+│  Problem: Opus is smart enough to delegate, but subagents inherit           │
+│           the same expensive model. Simple file reads cost as much          │
+│           as architectural analysis.                                         │
+│                                                                              │
+│  Also: Simple queries like "what is JSON?" still go to Opus.                │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### With Claude Router (v1.2)
+
+Claude Router adds **cost-aware routing at every level**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         WITH CLAUDE ROUTER                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  LEVEL 1: Initial Query Routing (before any work starts)                    │
+│  ─────────────────────────────────────────────────────────                  │
+│  "What is JSON?"  ─────────────────────►  HAIKU      (~$0.01)               │
+│  "Fix this typo"  ─────────────────────►  HAIKU      (~$0.01)               │
+│  "Run all tests"  ─────────────────────►  SONNET     (~$0.03)               │
+│  "Design microservice architecture" ───►  OPUS       (~$0.06)               │
+│                                                                              │
+│  LEVEL 2: Delegation Within Complex Tasks (v1.2 Orchestrator)               │
+│  ─────────────────────────────────────────────────────────────              │
+│  User: "Refactor the auth system across all files"                          │
+│                                                                              │
+│  OPUS ORCHESTRATOR receives query (detected as complex + tool-intensive)    │
+│    ├─► Spawns HAIKU to list files ────► cheap file enumeration ($)          │
+│    ├─► Spawns HAIKU to read files ────► cheap content gathering ($)         │
+│    ├─► OPUS analyzes and plans ───────► expensive reasoning ($$$)           │
+│    ├─► Spawns SONNET to edit files ───► balanced implementation ($$)        │
+│    └─► OPUS synthesizes & verifies ───► expensive final check ($$$)         │
+│                                                                              │
+│  Result: Opus does the thinking, cheaper models do the legwork              │
+│          Same quality, ~40% less cost on complex tasks                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### The Key Difference
+
+| Aspect | Default Opus 4.5 | Claude Router |
+|--------|------------------|---------------|
+| Initial routing | Always Opus (or your default) | Right model for the task |
+| Subagent model | Inherits parent model | Explicitly cheaper models |
+| Simple queries | Opus overkill | Haiku (80% savings) |
+| File reads in complex tasks | Opus ($$$) | Haiku ($) |
+| Architectural decisions | Opus | Opus (same quality) |
+| Cost awareness | None | Built-in at every level |
+
+**TL;DR**: Opus 4.5 is great at *what* to delegate. Claude Router adds *cost-aware* delegation - ensuring cheap work uses cheap models.
+
 ## The Problem
 
 When using Claude Code, you're typically on a single model:
@@ -38,6 +112,7 @@ When using Claude Code, you're typically on a single model:
 | Subagent token overhead | ~3.4k tokens (optimized) |
 | Cost savings (simple queries) | **~80%** (Haiku vs Opus) |
 | Cost savings (mixed workload) | **Est. 50-70%** |
+| Additional savings (v1.2 delegation) | **~40%** on complex orchestrated tasks |
 
 ## Why This Matters: Three-Fold Savings
 
@@ -315,14 +390,21 @@ claude-router/
   - Subscriber benefits (extended limits, longer sessions)
 
 ### Coming Soon
-- [ ] **Phase 5:** Context-aware routing
-  - Cache classifications for similar queries
-  - Factor in number of files open
-  - Consider session history and error patterns
-  - Adjust based on project complexity profile
+- [ ] **Phase 5:** Tool-Aware Routing & Hybrid Delegation
+  - Tool-intensity pattern detection (file scanning, multi-file edits, test runs)
+  - Opus Orchestrator mode for complex multi-step tasks
+  - Smart delegation: Opus handles strategy, spawns Haiku/Sonnet for subtasks
+  - Escalation paths: Sonnet can recommend Opus for architectural decisions
+  - Enhanced cost tracking with delegation metrics (~40% additional savings)
 
-- [ ] **Phase 6:** Learning from feedback
-  - Track user overrides
+- [ ] **Phase 6:** Context-Aware Session Routing
+  - Cache classifications for similar queries
+  - Factor in session tool history
+  - Project complexity profiles
+  - Learn from user routing overrides
+
+- [ ] **Phase 7:** Adaptive Learning
+  - Track user overrides and feedback
   - Adjust future routing based on patterns
   - Per-project routing profiles
 
