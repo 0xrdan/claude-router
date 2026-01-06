@@ -149,10 +149,6 @@ For Claude Pro and Max subscribers, intelligent routing means:
 
 ## Installation
 
-**Note:** Choose only ONE installation method. If switching between methods, uninstall the previous one first to avoid conflicts.
-
-### Option 1: Claude Code Plugin (Recommended)
-
 Run these commands in any Claude Code session:
 
 ```bash
@@ -176,32 +172,6 @@ That's it! The plugin automatically routes queries - no additional configuration
 # Uninstall
 /plugin uninstall claude-router@claude-router-marketplace
 ```
-
-### Option 2: One-Command Install
-
-```bash
-# Install
-curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/install.sh | bash
-
-# Uninstall
-curl -sSL https://raw.githubusercontent.com/0xrdan/claude-router/main/uninstall.sh | bash
-```
-
-**Note:** This method automatically sets up `CLAUDE.md` (optional but harmless).
-
-### Option 3: Manual Install
-
-```bash
-# Install
-git clone https://github.com/0xrdan/claude-router.git
-cd claude-router
-./install.sh
-
-# Uninstall
-./uninstall.sh
-```
-
-**Note:** This method automatically sets up `CLAUDE.md` (optional but harmless).
 
 ## Routing Rules
 
@@ -339,9 +309,7 @@ claude-router/
 │   └── plugin.json                # Plugin manifest
 ├── agents/                        # Source agent definitions
 ├── hooks/                         # Source hook scripts
-├── skills/                        # Source skills
-├── install.sh                     # Installation script
-└── uninstall.sh                   # Uninstallation script
+└── skills/                        # Source skills
 ```
 
 ## Why Anthropic Should Care
@@ -393,14 +361,6 @@ claude-router/
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
-
-### Quick Start for Contributors
-
-```bash
-git clone https://github.com/0xrdan/claude-router.git
-cd claude-router
-./install.sh  # Choose option 1 for project install
-```
 
 ## License
 
