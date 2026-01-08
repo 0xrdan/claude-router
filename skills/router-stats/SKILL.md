@@ -14,12 +14,13 @@ Read the stats file at `~/.claude/router-stats.json` and present the data in a c
 
 ## Data Format
 
-The stats file contains (v1.1 schema):
+The stats file contains (v1.2 schema):
 ```json
 {
-  "version": "1.1",
+  "version": "1.2",
   "total_queries": 100,
   "routes": {"fast": 30, "standard": 50, "deep": 10, "orchestrated": 10},
+  "exceptions": {"router_meta": 15, "slash_commands": 0},
   "tool_intensive_queries": 25,
   "orchestrated_queries": 10,
   "estimated_savings": 12.50,
@@ -60,6 +61,11 @@ Route Distribution:
 Tool-Intensive Queries: 25 (25%)
 Orchestrated Queries:   10 (10%)
 
+⚡ Exceptions (handled by Opus despite classification)
+───────────────────────────────────────────────────
+Router Meta-Queries:  15  (queries about the router itself)
+Total Exceptions:     15
+
 💰 Cost Savings
 ───────────────────────────────────────────────────
 Estimated Savings:   $12.50  (compared to always using Opus)
@@ -80,11 +86,13 @@ Route Distribution:
 1. Use the Read tool to read `~/.claude/router-stats.json`
 2. If the file doesn't exist, inform the user that no stats are available yet
 3. Calculate percentages for route distribution
-4. Format and display the statistics
-5. Include the savings comparison explanation
+4. Display exception counts if present (router_meta queries are handled by Opus despite classification)
+5. Format and display the statistics
+6. Include the savings comparison explanation
 
 ## Notes
 
 - Savings are calculated assuming Opus would have been used for all queries
 - Cost estimates use: Haiku 4.5 $1/$5, Sonnet 4.5 $3/$15, Opus 4.5 $5/$25 per 1M tokens
 - Average query estimated at 1K input + 2K output tokens
+- **Exceptions**: Queries about the router itself are classified but handled by Opus (per CLAUDE.md rules). This is intentional - users discussing the router get the most capable model while still seeing what the classifier decided.

@@ -48,6 +48,24 @@ COST_PER_1M = {
 AVG_INPUT_TOKENS = 1000
 AVG_OUTPUT_TOKENS = 2000
 
+# Exception patterns - queries that will be handled by Opus despite classification
+# (router meta-questions, slash commands handled in main())
+EXCEPTION_PATTERNS = [
+    r'\brouter\b.*\b(stats?|config|setting|work)',
+    r'\brouting\b',
+    r'claude.?router',
+    r'\bexception\b.*\b(track|detect)',
+    r'\bclassif(y|ication)\b.*\b(prompt|query)',
+]
+
+def is_exception_query(prompt: str) -> tuple[bool, str]:
+    """Check if query matches exception patterns that bypass routing."""
+    prompt_lower = prompt.lower()
+    for pattern in EXCEPTION_PATTERNS:
+        if re.search(pattern, prompt_lower):
+            return True, "router_meta"
+    return False, None
+
 # Classification patterns
 PATTERNS = {
     "fast": [
@@ -162,11 +180,12 @@ def log_routing_decision(route: str, confidence: float, method: str, signals: li
         # Ensure directory exists
         STATS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-        # Load existing stats or create new (v1.1 schema with orchestration tracking)
+        # Load existing stats or create new (v1.2 schema with exception tracking)
         stats = {
-            "version": "1.1",
+            "version": "1.2",
             "total_queries": 0,
             "routes": {"fast": 0, "standard": 0, "deep": 0, "orchestrated": 0},
+            "exceptions": {"router_meta": 0, "slash_commands": 0},
             "tool_intensive_queries": 0,
             "orchestrated_queries": 0,
             "estimated_savings": 0.0,
@@ -184,9 +203,10 @@ def log_routing_decision(route: str, confidence: float, method: str, signals: li
             except (json.JSONDecodeError, IOError):
                 pass
 
-        # Ensure v1.1 schema fields exist (migration from v1.0)
-        stats.setdefault("version", "1.1")
+        # Ensure v1.2 schema fields exist (migration from v1.0/v1.1)
+        stats.setdefault("version", "1.2")
         stats.setdefault("routes", {}).setdefault("orchestrated", 0)
+        stats.setdefault("exceptions", {"router_meta": 0, "slash_commands": 0})
         stats.setdefault("tool_intensive_queries", 0)
         stats.setdefault("orchestrated_queries", 0)
         stats.setdefault("delegation_savings", 0.0)
@@ -194,6 +214,11 @@ def log_routing_decision(route: str, confidence: float, method: str, signals: li
         # Update stats
         stats["total_queries"] += 1
         metadata = metadata or {}
+
+        # Track exceptions (queries that bypass routing due to CLAUDE.md rules)
+        exception_type = metadata.get("exception_type")
+        if exception_type:
+            stats["exceptions"][exception_type] = stats["exceptions"].get(exception_type, 0) + 1
 
         # Track orchestrated vs regular routes
         if metadata.get("orchestration") and route == "deep":
@@ -441,6 +466,9 @@ def main():
     if prompt.strip().startswith("/"):
         sys.exit(0)
 
+    # Check for exception queries (router meta-questions)
+    is_exception, exception_type = is_exception_query(prompt)
+
     # Classify using hybrid approach
     result = classify_hybrid(prompt)
 
@@ -451,6 +479,10 @@ def main():
 
     # Get metadata for orchestration/tool-intensive routing
     metadata = result.get("metadata", {})
+
+    # Track exception if detected
+    if is_exception:
+        metadata["exception_type"] = exception_type
 
     # Log routing decision to stats
     log_routing_decision(route, confidence, method, signals, metadata)
@@ -474,6 +506,8 @@ def main():
         metadata_str += " | Tool-intensive: Yes"
     if metadata.get("orchestration"):
         metadata_str += " | Orchestration: Yes"
+    if metadata.get("exception_type"):
+        metadata_str += f" | Exception: {metadata['exception_type']}"
 
     context = f"""[Claude Router] MANDATORY ROUTING DIRECTIVE
 Route: {route} | Model: {model} | Confidence: {confidence:.0%} | Method: {method}{metadata_str}
