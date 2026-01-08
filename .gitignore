@@ -23,3 +23,6 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Internal drafts
+.knowledge-architecture-draft.md
