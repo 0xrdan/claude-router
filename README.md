@@ -347,16 +347,11 @@ claude-router/
   - Enhanced cost tracking with delegation metrics (~40% additional savings)
 
 ### Coming Soon
-- [ ] **Phase 6:** Context-Aware Session Routing
-  - Cache classifications for similar queries
-  - Factor in session tool history
-  - Project complexity profiles
-  - Learn from user routing overrides
-
-- [ ] **Phase 7:** Adaptive Learning
-  - Track user overrides and feedback
-  - Adjust future routing based on patterns
-  - Per-project routing profiles
+- [ ] **Phase 6:** Adaptive Learning & Context Persistence
+  - Structured knowledge persistence across sessions
+  - Classification caching for faster repeat queries
+  - Learn from routing patterns and user feedback
+  - Project-aware routing profiles
 
 ## Contributing
 
