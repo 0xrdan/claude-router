@@ -1,0 +1,31 @@
+# Knowledge Base - Gitignored by Default
+#
+# The knowledge directory contains project-specific insights learned
+# during Claude Code sessions. By default, this is local/personal.
+#
+# To share knowledge with your team:
+# 1. Remove the entries you want to share from this .gitignore
+# 2. Or delete this .gitignore entirely to share everything
+#
+# Files:
+# - cache/          Classification cache (performance, not shareable)
+# - learnings/      Patterns, quirks, decisions (shareable if desired)
+# - context/        Session state (ephemeral, not shareable)
+# - state.json      Learning mode state (local only)
+
+# Cache - always local (performance optimization)
+cache/
+
+# Session context - always local (ephemeral)
+context/
+
+# Learning state - always local
+state.json
+
+# Learnings - gitignored by default, remove to share
+learnings/
+
+# To share specific learnings, comment out the line above and use:
+# learnings/patterns.md    # Uncomment to ignore only patterns
+# learnings/quirks.md      # Uncomment to ignore only quirks
+# learnings/decisions.md   # Uncomment to ignore only decisions

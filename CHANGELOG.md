@@ -2,6 +2,130 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [1.4.0] - 2026-01-08
+
+### Added - Knowledge System (Phase 6)
+
+**Why this version is better:**
+
+The previous versions made Claude Code smarter about routing queries to the right model. But every session started fresh - Claude had no memory of what it learned about your project. You'd discover a quirk in the auth system, session ends, and next time you're back to square one.
+
+v1.4.0 introduces a **persistent knowledge system** that creates continuity across sessions.
+
+**The Core Problem:**
+
+```
+Session 1: Discover auth quirk after 30 minutes of debugging
+Session ends → Context lost
+
+Session 2: Same auth quirk bites you again
+Session ends → Context lost again
+
+Session 3: "Why does this keep happening?"
+```
+
+**The Solution:**
+
+```
+Session 1: Discover auth quirk → /learn saves it
+Session 2: Ask about auth → Claude already knows the quirk
+Session 3: Continuity preserved, no re-discovery needed
+```
+
+### New Commands
+
+| Command | Description |
+|---------|-------------|
+| `/learn` | Extract insights from current conversation (one-shot) |
+| `/learn-on` | Enable continuous learning mode (auto-extracts every 10 queries) |
+| `/learn-off` | Disable continuous learning mode |
+| `/knowledge` | View knowledge base status and recent learnings |
+| `/learn-reset` | Clear all knowledge and start fresh |
+
+### What Gets Captured
+
+The knowledge system captures three types of insights:
+
+1. **Patterns** (`knowledge/learnings/patterns.md`)
+   - Approaches that work well in your codebase
+   - Example: "Error handling wraps async calls in try-catch with custom logger"
+
+2. **Quirks** (`knowledge/learnings/quirks.md`)
+   - Project-specific gotchas and non-standard behaviors
+   - Example: "Auth service returns 200 even on errors - check response.success"
+
+3. **Decisions** (`knowledge/learnings/decisions.md`)
+   - Architectural choices with rationale
+   - Example: "Chose Redis over in-memory cache for session storage because..."
+
+### How It's Different from Manual CLAUDE.md Updates
+
+| Manual Approach | Knowledge System |
+|-----------------|------------------|
+| Remember to update CLAUDE.md | Automatic extraction on `/learn` |
+| Extract insights yourself | Claude analyzes conversation for you |
+| Context often lost before you save | Continuous mode captures as you go |
+| Single file, gets cluttered | Organized by type (patterns/quirks/decisions) |
+| Hard to share selectively | Gitignored by default, opt-in sharing |
+
+### Technical Features
+
+**Classification Caching:**
+- Similar queries are cached to avoid re-classification
+- Fingerprint-based matching (not exact match)
+- LRU eviction at 100 entries, 30-day TTL
+- Cache hits shown in routing output
+
+**Informed Routing (Opt-in):**
+- Knowledge can influence routing decisions
+- If quirks.md says "auth is complex," auth queries boost toward Opus
+- Conservative by design: requires 2+ keyword matches, +0.1 confidence max
+- Disabled by default, enable via `knowledge/state.json`
+
+**Privacy:**
+- Knowledge gitignored by default (local only)
+- Edit `knowledge/.gitignore` to share with team
+- Human-readable markdown files
+
+### Directory Structure
+
+```
+knowledge/
+├── cache/
+│   └── classifications.md    # Query→route cache
+├── learnings/
+│   ├── patterns.md           # What works well
+│   ├── quirks.md             # Project gotchas
+│   └── decisions.md          # Architectural rationale
+├── context/
+│   └── session.md            # Session state
+├── state.json                # Learning mode config
+└── .gitignore                # Privacy (gitignored by default)
+```
+
+### Configuration
+
+`knowledge/state.json` controls behavior:
+
+```json
+{
+  "learning_mode": false,        // true when /learn-on active
+  "informed_routing": false,     // Enable knowledge-informed routing
+  "informed_routing_boost": 0.1, // Max confidence adjustment
+  "extraction_threshold_queries": 10
+}
+```
+
+---
+
+## [1.3.0] - 2026-01-07
+
+### Added
+- Exception tracking for router transparency
+- Stats now show when queries are classified but handled by Opus due to exceptions (router meta-questions)
+
+---
+
 ## [1.2.0] - 2026-01-06
 
 ### Added - Tool-Aware Routing & Hybrid Delegation (Phase 5)

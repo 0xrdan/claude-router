@@ -11,6 +11,7 @@ import json
 import sys
 import os
 import re
+import hashlib
 from pathlib import Path
 from datetime import datetime
 # Cross-platform file locking
@@ -57,6 +58,265 @@ EXCEPTION_PATTERNS = [
     r'\bexception\b.*\b(track|detect)',
     r'\bclassif(y|ication)\b.*\b(prompt|query)',
 ]
+
+# Classification cache settings
+CACHE_MAX_ENTRIES = 100
+CACHE_TTL_DAYS = 30
+
+def get_knowledge_dir() -> Path:
+    """Get the knowledge directory path (project-local)."""
+    # Try to find knowledge/ relative to this script's location
+    script_dir = Path(__file__).parent.parent  # Go up from hooks/ to project root
+    knowledge_dir = script_dir / "knowledge"
+    if knowledge_dir.exists():
+        return knowledge_dir
+    # Fallback: check current working directory
+    cwd_knowledge = Path.cwd() / "knowledge"
+    if cwd_knowledge.exists():
+        return cwd_knowledge
+    return None
+
+def generate_fingerprint(prompt: str) -> str:
+    """Generate a fingerprint for a prompt to enable fuzzy cache matching."""
+    # Normalize: lowercase, strip, collapse whitespace
+    normalized = re.sub(r'\s+', ' ', prompt.lower().strip())
+
+    # Extract key terms (remove common words)
+    stop_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
+                  'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
+                  'would', 'could', 'should', 'may', 'might', 'must', 'can',
+                  'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from',
+                  'this', 'that', 'these', 'those', 'it', 'its', 'i', 'me', 'my'}
+
+    words = re.findall(r'\b[a-z]+\b', normalized)
+    key_terms = [w for w in words if w not in stop_words and len(w) > 2]
+
+    # Sort for consistency and take first 10 terms
+    key_terms = sorted(set(key_terms))[:10]
+    fingerprint_str = ' '.join(key_terms)
+
+    # Generate hash
+    return hashlib.md5(fingerprint_str.encode()).hexdigest()[:12]
+
+def check_classification_cache(prompt: str) -> dict:
+    """Check if a similar query exists in the cache."""
+    try:
+        knowledge_dir = get_knowledge_dir()
+        if not knowledge_dir:
+            return None
+
+        cache_file = knowledge_dir / "cache" / "classifications.md"
+        if not cache_file.exists():
+            return None
+
+        fingerprint = generate_fingerprint(prompt)
+
+        with open(cache_file, 'r') as f:
+            content = f.read()
+
+        # Look for matching fingerprint section
+        pattern = rf'## \[{fingerprint}\].*?(?=\n## \[|$)'
+        match = re.search(pattern, content, re.DOTALL)
+
+        if not match:
+            return None
+
+        entry = match.group(0)
+
+        # Parse the cached entry
+        route_match = re.search(r'\*\*Route:\*\* (\w+)', entry)
+        conf_match = re.search(r'\*\*Confidence:\*\* ([\d.]+)', entry)
+
+        if route_match and conf_match:
+            # Update hit count (we'll do this in a separate write)
+            return {
+                "route": route_match.group(1),
+                "confidence": float(conf_match.group(1)),
+                "signals": ["cache_hit"],
+                "method": "cache",
+                "metadata": {"cache_hit": True, "fingerprint": fingerprint}
+            }
+
+        return None
+    except Exception:
+        # Cache errors should never break classification
+        return None
+
+def write_classification_cache(prompt: str, result: dict):
+    """Write a classification result to the cache."""
+    try:
+        knowledge_dir = get_knowledge_dir()
+        if not knowledge_dir:
+            return
+
+        cache_file = knowledge_dir / "cache" / "classifications.md"
+        if not cache_file.exists():
+            return
+
+        fingerprint = generate_fingerprint(prompt)
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        # Read existing cache
+        with open(cache_file, 'r') as f:
+            content = f.read()
+
+        # Check if this fingerprint already exists
+        if f'## [{fingerprint}]' in content:
+            # Update last used date and hit count
+            pattern = rf'(## \[{fingerprint}\].*?\*\*Last used:\*\* )\d{{4}}-\d{{2}}-\d{{2}}'
+            content = re.sub(pattern, rf'\g<1>{today}', content, flags=re.DOTALL)
+
+            hit_pattern = rf'(## \[{fingerprint}\].*?\*\*Hit count:\*\* )(\d+)'
+            hit_match = re.search(hit_pattern, content, re.DOTALL)
+            if hit_match:
+                new_count = int(hit_match.group(2)) + 1
+                content = re.sub(hit_pattern, rf'\g<1>{new_count}', content, flags=re.DOTALL)
+
+            with open(cache_file, 'w') as f:
+                lock_file(f, exclusive=True)
+                f.write(content)
+                unlock_file(f)
+            return
+
+        # Create new entry
+        # Truncate prompt for storage (first 50 chars + pattern type)
+        prompt_preview = prompt[:50].replace('\n', ' ')
+        if len(prompt) > 50:
+            prompt_preview += "..."
+
+        entry = f"""
+## [{fingerprint}]
+- **Query pattern:** "{prompt_preview}"
+- **Route:** {result["route"]}
+- **Confidence:** {result["confidence"]:.2f}
+- **Last used:** {today}
+- **Hit count:** 1
+"""
+
+        # Count existing entries
+        entry_count = len(re.findall(r'^## \[', content, re.MULTILINE))
+
+        # If at max, evict oldest entry (by last used date)
+        if entry_count >= CACHE_MAX_ENTRIES:
+            # Find all entries with their dates
+            entries = re.findall(r'(## \[[^\]]+\].*?\*\*Last used:\*\* (\d{4}-\d{2}-\d{2}).*?)(?=\n## \[|$)',
+                                content, re.DOTALL)
+            if entries:
+                # Sort by date and remove oldest
+                entries_sorted = sorted(entries, key=lambda x: x[1])
+                oldest_entry = entries_sorted[0][0]
+                content = content.replace(oldest_entry, '')
+
+        # Append new entry
+        content = content.rstrip() + '\n' + entry
+
+        # Update frontmatter entry count
+        new_count = len(re.findall(r'^## \[', content, re.MULTILINE))
+        content = re.sub(r'entry_count: \d+', f'entry_count: {new_count}', content)
+        content = re.sub(r'last_updated: .*', f'last_updated: "{datetime.now().isoformat()}"', content)
+
+        with open(cache_file, 'w') as f:
+            lock_file(f, exclusive=True)
+            f.write(content)
+            unlock_file(f)
+
+    except Exception:
+        # Cache errors should never break classification
+        pass
+
+def get_learning_state() -> dict:
+    """Get the current learning state."""
+    try:
+        knowledge_dir = get_knowledge_dir()
+        if not knowledge_dir:
+            return {}
+        state_file = knowledge_dir / "state.json"
+        if state_file.exists():
+            with open(state_file, 'r') as f:
+                return json.load(f)
+        return {}
+    except Exception:
+        return {}
+
+def extract_learning_keywords() -> dict:
+    """Extract keywords from learnings files to inform routing."""
+    try:
+        knowledge_dir = get_knowledge_dir()
+        if not knowledge_dir:
+            return {"deep_keywords": set(), "fast_keywords": set()}
+
+        deep_keywords = set()
+        fast_keywords = set()
+
+        # Parse quirks.md for complexity indicators
+        quirks_file = knowledge_dir / "learnings" / "quirks.md"
+        if quirks_file.exists():
+            with open(quirks_file, 'r') as f:
+                content = f.read().lower()
+            # Extract keywords from quirk entries that suggest complexity
+            for match in re.findall(r'## quirk:.*?(?=## |$)', content, re.DOTALL):
+                if any(word in match for word in ['complex', 'tricky', 'careful', 'unusual', 'non-standard']):
+                    # Extract the topic area (location field)
+                    loc_match = re.search(r'\*\*location:\*\*\s*([^\n]+)', match)
+                    if loc_match:
+                        # Extract meaningful words from location
+                        words = re.findall(r'\b[a-z]{3,}\b', loc_match.group(1).lower())
+                        deep_keywords.update(words)
+
+        # Parse patterns.md for simple patterns
+        patterns_file = knowledge_dir / "learnings" / "patterns.md"
+        if patterns_file.exists():
+            with open(patterns_file, 'r') as f:
+                content = f.read().lower()
+            for match in re.findall(r'## pattern:.*?(?=## |$)', content, re.DOTALL):
+                if any(word in match for word in ['simple', 'straightforward', 'always', 'standard']):
+                    # Extract topic keywords
+                    insight_match = re.search(r'\*\*insight:\*\*\s*([^\n]+)', match)
+                    if insight_match:
+                        words = re.findall(r'\b[a-z]{3,}\b', insight_match.group(1).lower())
+                        fast_keywords.update(words)
+
+        return {"deep_keywords": deep_keywords, "fast_keywords": fast_keywords}
+    except Exception:
+        return {"deep_keywords": set(), "fast_keywords": set()}
+
+def apply_learned_adjustments(prompt: str, result: dict) -> dict:
+    """Apply learned knowledge to adjust routing confidence (conservative)."""
+    try:
+        state = get_learning_state()
+
+        # Check if informed routing is enabled
+        if not state.get("informed_routing", False):
+            return result
+
+        boost = state.get("informed_routing_boost", 0.1)
+        keywords = extract_learning_keywords()
+
+        prompt_lower = prompt.lower()
+        deep_matches = sum(1 for kw in keywords["deep_keywords"] if kw in prompt_lower)
+        fast_matches = sum(1 for kw in keywords["fast_keywords"] if kw in prompt_lower)
+
+        # Only adjust if we have meaningful signal (2+ keyword matches)
+        # Conservative: require more evidence for expensive routes
+        if deep_matches >= 2 and result["route"] != "deep":
+            # Boost toward deep, but cap at 0.1 increase
+            result["confidence"] = min(1.0, result["confidence"] + boost)
+            if result["confidence"] >= 0.8:
+                result["route"] = "deep"
+                result["metadata"] = result.get("metadata", {})
+                result["metadata"]["learned_boost"] = "deep"
+
+        elif fast_matches >= 2 and result["route"] == "deep":
+            # If learned patterns suggest simple, consider downgrading
+            # But be conservative - don't downgrade high-confidence deep
+            if result["confidence"] < 0.8:
+                result["route"] = "standard"
+                result["metadata"] = result.get("metadata", {})
+                result["metadata"]["learned_boost"] = "downgrade"
+
+        return result
+    except Exception:
+        return result
 
 def is_exception_query(prompt: str) -> tuple[bool, str]:
     """Check if query matches exception patterns that bypass routing."""
@@ -434,8 +694,13 @@ Return JSON only:
 
 def classify_hybrid(prompt: str) -> dict:
     """
-    Hybrid classification: rules first, LLM fallback for low confidence.
+    Hybrid classification: cache first, then rules, then LLM fallback, then learned adjustments.
     """
+    # Step 0: Check cache for similar query (instant)
+    cached = check_classification_cache(prompt)
+    if cached:
+        return cached
+
     # Step 1: Rule-based classification (instant, free)
     result = classify_by_rules(prompt)
 
@@ -445,7 +710,17 @@ def classify_hybrid(prompt: str) -> dict:
         if api_key:
             llm_result = classify_by_llm(prompt, api_key)
             if llm_result:
+                # Apply learned adjustments (opt-in, conservative)
+                llm_result = apply_learned_adjustments(prompt, llm_result)
+                # Cache LLM result (more expensive to compute)
+                write_classification_cache(prompt, llm_result)
                 return llm_result
+
+    # Step 3: Apply learned adjustments (opt-in, conservative)
+    result = apply_learned_adjustments(prompt, result)
+
+    # Step 4: Cache the result for future queries
+    write_classification_cache(prompt, result)
 
     return result
 
