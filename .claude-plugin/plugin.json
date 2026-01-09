@@ -17,7 +17,12 @@
   ],
   "commands": [
     "./commands/route.md",
-    "./commands/router-stats.md"
+    "./commands/router-stats.md",
+    "./commands/learn.md",
+    "./commands/learn-on.md",
+    "./commands/learn-off.md",
+    "./commands/knowledge.md",
+    "./commands/learn-reset.md"
   ],
   "skills": [
     "./skills/route/SKILL.md",
