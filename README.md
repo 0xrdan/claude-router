@@ -307,17 +307,27 @@ claude-router/
 │   │   ├── standard-executor.md   # Sonnet agent
 │   │   ├── deep-executor.md       # Opus agent
 │   │   └── opus-orchestrator.md   # Opus orchestrator (v1.2)
+│   ├── commands/                  # Slash command definitions
+│   │   ├── route.md
+│   │   ├── router-stats.md
+│   │   ├── learn.md               # (v1.4)
+│   │   ├── learn-on.md            # (v1.4)
+│   │   ├── learn-off.md           # (v1.4)
+│   │   ├── knowledge.md           # (v1.4)
+│   │   └── learn-reset.md         # (v1.4)
 │   ├── hooks/
 │   │   └── classify-prompt.py     # Hybrid classifier
 │   ├── skills/
 │   │   ├── route/                 # Manual routing skill
 │   │   ├── router-stats/          # Statistics skill
-│   │   ├── learn/                 # Insight extraction skill (v1.4)
+│   │   ├── learn/                 # Insight extraction (v1.4)
 │   │   ├── learn-on/              # Enable continuous learning (v1.4)
 │   │   ├── learn-off/             # Disable continuous learning (v1.4)
-│   │   └── knowledge/             # Knowledge base status (v1.4)
+│   │   ├── knowledge/             # Knowledge base status (v1.4)
+│   │   └── learn-reset/           # Reset knowledge base (v1.4)
 │   └── plugin.json                # Plugin manifest
 ├── agents/                        # Source agent definitions
+├── commands/                      # Source command definitions
 ├── hooks/                         # Source hook scripts
 ├── skills/                        # Source skills
 └── knowledge/                     # Project knowledge base (v1.4)
