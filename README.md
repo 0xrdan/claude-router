@@ -260,28 +260,9 @@ Models: `haiku`/`fast`, `sonnet`/`standard`, `opus`/`deep`
 /router-stats
 ```
 
-**Knowledge Commands (v1.4):**
+**Knowledge Commands (v1.4):** `/learn`, `/learn-on`, `/learn-off`, `/knowledge`, `/learn-reset`
 
-**`/learn`** - Extract insights from the current conversation and save to the knowledge base:
-```
-/learn
-```
-
-**`/learn-on`** / **`/learn-off`** - Enable or disable continuous learning mode:
-```
-/learn-on   # Enable automatic insight extraction
-/learn-off  # Disable automatic extraction
-```
-
-**`/knowledge`** - View knowledge base status and recent learnings:
-```
-/knowledge
-```
-
-**`/learn-reset`** - Clear all knowledge and start fresh:
-```
-/learn-reset
-```
+See [Knowledge System](#knowledge-system-v14) section for details.
 
 ### Automatic vs Manual Routing
 
@@ -505,10 +486,7 @@ This is conservative by design - it requires strong signals (2+ keyword matches)
   - Captures patterns, quirks, and decisions specific to each project
 
 ### Coming Soon
-- [ ] **Phase 7:** Router Integration with Knowledge
-  - Classification caching for faster repeat queries
-  - Learnings-informed routing decisions
-  - Project-aware routing profiles
+- More enhancements based on community feedback
 
 ## Contributing
 
