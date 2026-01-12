@@ -75,6 +75,21 @@ All plugins are **optional** - Claude Router works fully without them.
 - 4 new skills, 4 new commands
 - Updated agent definitions with escalation guidance
 
+### Looking Ahead: v2.1.0
+
+The plugin integration system in v2.0.0 sets the foundation for deeper integrations:
+
+**Planned: Hookify Integration**
+- Dynamic routing rule creation via hookify
+- Dual autonomy: both user and Claude can create rules
+- User: `/hookify "Always route auth questions to deep"`
+- Claude: Auto-suggest rules based on repeated escalation patterns
+- Learning-to-rules conversion (quirks → hookify rules)
+
+**Documentation updates needed:**
+- README update with new commands
+- Individual command documentation review
+
 ---
 
 ## [1.4.0] - 2026-01-08
