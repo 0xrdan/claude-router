@@ -75,6 +75,29 @@ _MEMORY_CACHE_MAX = 50
 # Session state file for multi-turn context awareness
 SESSION_STATE_FILE = Path.home() / ".claude" / "router-session.json"
 
+# Deprecation warning state file (tracks if warning shown today)
+DEPRECATION_WARNING_FILE = Path.home() / ".claude" / "router-deprecation-warned.json"
+
+# Marketplace deprecation settings
+MARKETPLACE_DEPRECATED = True
+MARKETPLACE_DEPRECATION_MESSAGE = """
+[Claude Router] MARKETPLACE MIGRATION NOTICE
+
+The claude-router-marketplace is deprecated and will stop working in a future update.
+
+Please migrate to the new centralized marketplace:
+  /migrate-marketplace
+
+Or manually run:
+  1. /plugin uninstall claude-router@claude-router-marketplace
+  2. /plugin marketplace remove claude-router-marketplace
+  3. /plugin marketplace add 0xrdan/claude-plugins
+  4. /plugin install claude-router
+
+The plugin itself hasn't changed - this is just a distribution update.
+Your settings and stats are preserved.
+"""
+
 # Follow-up query patterns (pre-compiled)
 FOLLOW_UP_PATTERNS = [
     re.compile(r"^(and |also |now |next |then |but )"),
@@ -121,6 +144,38 @@ def is_plugin_enabled(plugin_name: str) -> bool:
     detected = detect_installed_plugins().get(plugin_name, False)
     enabled = plugin.get("enabled", False)
     return detected and enabled
+
+
+def should_show_deprecation_warning() -> bool:
+    """Check if we should show the deprecation warning (once per day)."""
+    if not MARKETPLACE_DEPRECATED:
+        return False
+
+    try:
+        if DEPRECATION_WARNING_FILE.exists():
+            with open(DEPRECATION_WARNING_FILE, "r") as f:
+                data = json.load(f)
+                last_warned = data.get("last_warned", "")
+                today = datetime.now().strftime("%Y-%m-%d")
+                if last_warned == today:
+                    return False
+    except (json.JSONDecodeError, IOError):
+        pass
+
+    return True
+
+
+def mark_deprecation_warning_shown():
+    """Mark that we've shown the deprecation warning today."""
+    try:
+        DEPRECATION_WARNING_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(DEPRECATION_WARNING_FILE, "w") as f:
+            json.dump({
+                "last_warned": datetime.now().strftime("%Y-%m-%d"),
+                "migrated": False
+            }, f)
+    except IOError:
+        pass
 
 
 def get_session_state() -> dict:
@@ -989,7 +1044,13 @@ def main():
     if metadata.get("exception_type"):
         metadata_str += f" | Exception: {metadata['exception_type']}"
 
-    context = f"""[Claude Router] MANDATORY ROUTING DIRECTIVE
+    # Check for deprecation warning (once per day)
+    deprecation_warning = ""
+    if should_show_deprecation_warning():
+        deprecation_warning = MARKETPLACE_DEPRECATION_MESSAGE + "\n"
+        mark_deprecation_warning_shown()
+
+    context = f"""{deprecation_warning}[Claude Router] MANDATORY ROUTING DIRECTIVE
 Route: {route} | Model: {model} | Confidence: {confidence:.0%} | Method: {method}{metadata_str}
 Signals: {signals_str}
 
