@@ -2,12 +2,21 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.5] - 2026-01-12
+
+### Changed
+- **HARD DEPRECATION**: Routing is now blocked for users on old `claude-router-marketplace`
+- Users must run `/migrate-marketplace` to continue using Claude Router
+- Migration is automatic and preserves all settings/stats
+
+**Note:** This is the final update via `claude-router-marketplace`. Run `/migrate-marketplace` to switch to `0xrdan/claude-plugins`.
+
+---
+
 ## [2.0.4] - 2026-01-12
 
 ### Fixed
 - Fixed deprecation warning hook (was missing from root hooks directory)
-
-**Note:** This is the last update available via `claude-router-marketplace`. Please migrate to `0xrdan/claude-plugins`.
 
 ---
 

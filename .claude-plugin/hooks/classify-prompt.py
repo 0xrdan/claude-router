@@ -994,6 +994,38 @@ def main():
     if prompt.strip().startswith("/"):
         sys.exit(0)
 
+    # HARD DEPRECATION: Block routing if installed from old marketplace
+    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
+    if "claude-router-marketplace" in plugin_root:
+        migration_message = """[Claude Router] MIGRATION REQUIRED
+
+The claude-router-marketplace has been deprecated and is no longer receiving updates.
+
+To continue using Claude Router, you MUST migrate to the new marketplace:
+
+  /migrate-marketplace
+
+Or manually:
+  1. /plugin uninstall claude-router@claude-router-marketplace
+  2. /plugin marketplace remove claude-router-marketplace
+  3. /plugin marketplace add 0xrdan/claude-plugins
+  4. /plugin install claude-router
+  5. Restart Claude Code
+
+This is a one-time migration. Your settings and stats are preserved.
+The plugin repo (0xrdan/claude-router) has not changed - only the distribution method.
+
+ROUTING IS DISABLED until you migrate."""
+
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": migration_message
+            }
+        }
+        print(json.dumps(output))
+        sys.exit(0)
+
     # Check for exception queries (router meta-questions)
     is_exception, exception_type = is_exception_query(prompt)
 
