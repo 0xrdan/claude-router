@@ -990,8 +990,84 @@ def main():
     if not prompt or len(prompt) < 10:
         sys.exit(0)
 
-    # Skip slash commands
-    if prompt.strip().startswith("/"):
+    # Handle slash commands
+    stripped = prompt.strip().lower()
+    if stripped.startswith("/"):
+        # Special handling for /route with explicit model
+        if stripped.startswith("/route "):
+            route_args = prompt.strip()[7:].strip()  # Get everything after "/route "
+            first_word = route_args.split()[0].lower() if route_args.split() else ""
+
+            # Check for explicit model specification
+            model_map = {
+                "opus": ("deep", "deep-executor", "Opus"),
+                "deep": ("deep", "deep-executor", "Opus"),
+                "sonnet": ("standard", "standard-executor", "Sonnet"),
+                "standard": ("standard", "standard-executor", "Sonnet"),
+                "haiku": ("fast", "fast-executor", "Haiku"),
+                "fast": ("fast", "fast-executor", "Haiku"),
+            }
+
+            if first_word in model_map:
+                route, subagent, model = model_map[first_word]
+                query = " ".join(route_args.split()[1:])  # Rest after model
+
+                context = f"""[Claude Router] EXPLICIT MODEL OVERRIDE
+Route: {route} | Model: {model} | Source: User specified "{first_word}"
+
+USER EXPLICITLY REQUESTED {model.upper()}. This is NOT a suggestion - it is a COMMAND.
+
+CRITICAL: Spawn "claude-router:{subagent}" with the query below. DO NOT reclassify. DO NOT override.
+
+Query: {query}
+
+Example:
+Task(subagent_type="claude-router:{subagent}", prompt="{query}", description="Route to {model}")"""
+
+                output = {
+                    "hookSpecificOutput": {
+                        "hookEventName": "UserPromptSubmit",
+                        "additionalContext": context
+                    }
+                }
+                print(json.dumps(output))
+                sys.exit(0)
+
+        # Special handling for /retry with explicit model
+        if stripped.startswith("/retry "):
+            retry_args = prompt.strip()[7:].strip().lower()  # Get everything after "/retry "
+
+            retry_model_map = {
+                "opus": ("deep", "deep-executor", "Opus"),
+                "deep": ("deep", "deep-executor", "Opus"),
+                "sonnet": ("standard", "standard-executor", "Sonnet"),
+                "standard": ("standard", "standard-executor", "Sonnet"),
+            }
+
+            if retry_args in retry_model_map:
+                route, subagent, model = retry_model_map[retry_args]
+
+                context = f"""[Claude Router] EXPLICIT RETRY OVERRIDE
+Route: {route} | Model: {model} | Source: User specified "/retry {retry_args}"
+
+USER EXPLICITLY REQUESTED {model.upper()} FOR RETRY. This is NOT a suggestion - it is a COMMAND.
+
+CRITICAL: Read the last query from session state (~/.claude/router-session.json) and spawn "claude-router:{subagent}".
+DO NOT auto-escalate. DO NOT choose a different model. Use {model.upper()}.
+
+Example:
+Task(subagent_type="claude-router:{subagent}", prompt="<last query from session>", description="Retry with {model}")"""
+
+                output = {
+                    "hookSpecificOutput": {
+                        "hookEventName": "UserPromptSubmit",
+                        "additionalContext": context
+                    }
+                }
+                print(json.dumps(output))
+                sys.exit(0)
+
+        # Skip other slash commands (let skills handle them)
         sys.exit(0)
 
     # HARD DEPRECATION: Block routing if installed from old marketplace

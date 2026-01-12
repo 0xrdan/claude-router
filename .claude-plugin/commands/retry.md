@@ -24,9 +24,12 @@ Retry the last query with a more capable model when the initial attempt was insu
 
 ## Escalation Path
 
+Auto-escalation (when no model specified):
 - `fast` (Haiku) → `standard` (Sonnet)
 - `standard` (Sonnet) → `deep` (Opus)
 - `deep` (Opus) → Already at max capability
+
+**When user specifies `/retry deep` or `/retry standard`, use that model exactly. Do not auto-escalate.**
 
 ## Notes
 

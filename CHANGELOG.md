@@ -2,14 +2,26 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.6] - 2026-01-12
+
+### Changed
+- **Hook-level model enforcement**: `/route opus|sonnet|haiku` and `/retry deep|standard` now enforced at hook level
+- Model cannot be overridden by Claude - explicit user choice is authoritative
+- Strengthened skill/command instructions to emphasize honoring user choices
+- **Removed old marketplace**: `claude-router-marketplace` no longer supported
+- Only `0xrdan/claude-plugins` marketplace is active
+
+### Fixed
+- `/route opus <query>` now guaranteed to use Opus (was sometimes reclassified)
+- `/retry deep` now guaranteed to use Opus (was sometimes auto-escalated differently)
+
+---
+
 ## [2.0.5] - 2026-01-12
 
 ### Changed
-- **HARD DEPRECATION**: Routing is now blocked for users on old `claude-router-marketplace`
+- **HARD DEPRECATION**: Routing blocked for users on old `claude-router-marketplace`
 - Users must run `/migrate-marketplace` to continue using Claude Router
-- Migration is automatic and preserves all settings/stats
-
-**Note:** This is the final update via `claude-router-marketplace`. Run `/migrate-marketplace` to switch to `0xrdan/claude-plugins`.
 
 ---
 

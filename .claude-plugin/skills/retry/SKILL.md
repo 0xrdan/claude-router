@@ -44,23 +44,18 @@ When a query routed to a cheaper model (Haiku or Sonnet) produces unsatisfactory
 
 When this skill is invoked:
 
-1. **Read session state** from `~/.claude/router-session.json`
-2. **Check last route** to determine escalation path
-3. **Inform the user** of the escalation:
-   ```
-   Escalating from [last_model] to [new_model]...
-   Re-running last query with more capable model.
-   ```
-4. **Spawn the appropriate subagent** using Task tool with the escalated model
+1. **Check for explicit model** - Did user specify `deep`/`opus` or `standard`/`sonnet`?
+   - **YES**: Use that model. **DO NOT auto-escalate. Honor the explicit choice.**
+   - **NO**: Proceed to escalation logic
+2. **Read session state** from `~/.claude/router-session.json`
+3. **Determine escalation** (only if no explicit model):
+   - From `fast`: Escalate to `standard`
+   - From `standard`: Escalate to `deep`
+   - From `deep`: Already at max, suggest different approach
+4. **Inform the user** of the escalation
+5. **Spawn the appropriate subagent** using Task tool
 
-## Escalation Guidance
-
-If the user doesn't specify a target:
-- From `fast`: Escalate to `standard` (Sonnet is usually sufficient)
-- From `standard`: Escalate to `deep` (Opus for complex tasks)
-- From `deep`: Suggest alternative approaches (already at max capability)
-
-If the user specifies `deep`, always use Opus regardless of last route.
+**CRITICAL: If user specifies a model (`/retry deep`, `/retry standard`), use exactly that model. No exceptions.**
 
 ## Example
 
