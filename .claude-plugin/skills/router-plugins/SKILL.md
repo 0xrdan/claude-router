@@ -12,7 +12,7 @@ Manage integrations with official Claude Code plugins.
 
 Claude Router can optionally integrate with these official plugins:
 - **hookify**: Pattern-based behavior rules
-- **ralph-wiggum**: Iterative development loops
+- **ralph-loop**: Iterative development loops
 - **code-review**: Multi-agent PR review
 - **feature-dev**: 7-phase feature development
 
@@ -34,7 +34,7 @@ Plugin Integrations
 ───────────────────
 
   hookify:       [x] Detected  [ ] Enabled
-  ralph-wiggum:  [ ] Not found
+  ralph-loop:  [ ] Not found
   code-review:   [x] Detected  [x] Enabled
   feature-dev:   [x] Detected  [ ] Enabled
 
@@ -56,12 +56,12 @@ When this skill is invoked:
 
 ### Enable Mode (`/router-plugins enable <name>`)
 
-1. Check if plugin is in supported list: hookify, ralph-wiggum, code-review, feature-dev
+1. Check if plugin is in supported list: hookify, ralph-loop, code-review, feature-dev
 2. Check if plugin is detected (installed)
 3. If not detected, inform user how to install:
    ```
-   Plugin "ralph-wiggum" not found.
-   Install with: /plugin install ralph-wiggum@claude-plugins-official
+   Plugin "ralph-loop" not found.
+   Install with: /plugin install ralph-loop@claude-plugins-official
    ```
 4. If detected, update `knowledge/state.json`:
    ```json
@@ -89,7 +89,7 @@ When this skill is invoked:
 When integrations are enabled:
 
 - **hookify**: Routing can suggest creating hookify rules for repeated patterns
-- **ralph-wiggum**: Orchestrated tasks may suggest `/ralph-loop` for iterative work
+- **ralph-loop**: Orchestrated tasks may suggest `/ralph-loop` for iterative work
 - **code-review**: PR review queries may suggest using the code-review plugin
 - **feature-dev**: Feature requests may suggest the structured feature-dev workflow
 

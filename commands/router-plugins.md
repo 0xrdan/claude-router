@@ -21,7 +21,7 @@ Manage integrations with official Claude Code plugins.
 | Plugin | Integration |
 |--------|-------------|
 | hookify | Pattern-based behavior rules |
-| ralph-wiggum | Iterative development loops |
+| ralph-loop | Iterative development loops |
 | code-review | Multi-agent PR review |
 | feature-dev | 7-phase feature development |
 
@@ -31,7 +31,7 @@ Manage integrations with official Claude Code plugins.
 Plugin Integrations
 ───────────────────
   hookify:       [x] Detected  [ ] Enabled
-  ralph-wiggum:  [ ] Not found
+  ralph-loop:  [ ] Not found
   code-review:   [x] Detected  [x] Enabled
   feature-dev:   [x] Detected  [ ] Enabled
 ```

@@ -40,7 +40,7 @@
 - **Context forking**: `/orchestrate` for clean subtask isolation, `/router-analytics` for dashboard generation
 - **Multi-turn awareness**: Session state tracking, follow-up detection, context-aware confidence boost
 - **Error recovery**: `/retry` command for model escalation when queries fail or need more depth
-- **Plugin integration**: Optional integrations with official plugins (hookify, ralph-wiggum, code-review, feature-dev)
+- **Plugin integration**: Optional integrations with official plugins (hookify, ralph-loop, code-review, feature-dev)
 - **Analytics dashboard**: `/router-analytics` generates interactive HTML charts
 
 ---

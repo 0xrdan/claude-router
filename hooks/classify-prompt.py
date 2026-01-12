@@ -85,7 +85,7 @@ FOLLOW_UP_PATTERNS = [
 ]
 
 # Official plugins that claude-router can integrate with (optional)
-SUPPORTED_PLUGINS = ["hookify", "ralph-wiggum", "code-review", "feature-dev"]
+SUPPORTED_PLUGINS = ["hookify", "ralph-loop", "code-review", "feature-dev"]
 
 
 def detect_installed_plugins() -> dict:

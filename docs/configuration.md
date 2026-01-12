@@ -140,7 +140,7 @@ Manage optional plugin integrations:
 
 **Supported plugins:**
 - `hookify` - Pattern-based behavior rules
-- `ralph-wiggum` - Iterative development loops
+- `ralph-loop` - Iterative development loops
 - `code-review` - Multi-agent PR review
 - `feature-dev` - 7-phase feature development
 
