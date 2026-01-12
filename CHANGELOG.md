@@ -2,6 +2,16 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.3] - 2026-01-12
+
+### Fixed
+- Fixed migrate-marketplace command/skill paths (was missing from root directories)
+- Fixed marketplace version to enable updates
+
+**Note:** This is the last update available via `claude-router-marketplace`. Please migrate to `0xrdan/claude-plugins`.
+
+---
+
 ## [2.0.2] - 2026-01-12
 
 ### Changed
