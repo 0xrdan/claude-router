@@ -31,10 +31,10 @@
 
 ```bash
 # Step 1: Add the marketplace (one-time, per project)
-/plugin marketplace add 0xrdan/claude-router
+/plugin marketplace add 0xrdan/claude-plugins
 
 # Step 2: Install the plugin
-/plugin install claude-router@claude-router-marketplace
+/plugin install claude-router
 
 # Step 3: Restart Claude Code session to activate
 ```
@@ -43,11 +43,18 @@ That's it! The plugin automatically routes queries - no configuration needed.
 
 ```bash
 # Update
-/plugin marketplace update claude-router-marketplace
+/plugin marketplace update 0xrdan-plugins
 
 # Uninstall
-/plugin uninstall claude-router@claude-router-marketplace
+/plugin uninstall claude-router
 ```
+
+> **Migrating from old marketplace?** If you previously installed via `claude-router-marketplace`, run:
+> ```bash
+> /plugin uninstall claude-router@claude-router-marketplace
+> /plugin marketplace remove claude-router-marketplace
+> ```
+> Then follow the installation steps above.
 
 ## Quick Start
 
