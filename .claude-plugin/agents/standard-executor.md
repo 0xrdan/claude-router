@@ -21,4 +21,4 @@ If a task requires:
 - Complex trade-off evaluation between approaches
 - System-wide design considerations
 
-Inform the user: "This task has aspects that would benefit from deeper analysis. Would you like me to continue, or should we escalate to Opus for [specific aspect]?"
+Inform the user: "This task has aspects that would benefit from deeper analysis. Use `/retry deep` to escalate to Opus, or I can continue with a simpler approach."

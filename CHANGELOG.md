@@ -2,6 +2,81 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.0] - 2026-01-11
+
+### Major Release - Performance, Context Forking, Multi-Turn Awareness
+
+**Why this version is better:**
+
+v2.0.0 is a comprehensive upgrade that makes Claude Router faster, smarter, and more integrated with the Claude Code ecosystem.
+
+### Performance Optimizations (Phase 1)
+
+- **Pre-compiled regex patterns**: All classification patterns now pre-compiled at module load (~10-15% faster)
+- **Keyword caching**: mtime-based caching for learning keywords (avoids re-parsing files)
+- **Early exit optimization**: Pattern matching short-circuits when sufficient signals found
+- **In-memory cache**: LRU cache (50 entries) eliminates file I/O for repeated queries
+
+### Context Forking Integration (Phase 2)
+
+New skills that use Claude Code's context forking for clean subtask isolation:
+
+| Command | Description |
+|---------|-------------|
+| `/orchestrate` | Execute complex multi-step tasks in forked context |
+| `/router-analytics` | Generate HTML analytics dashboard in isolated context |
+| `/learn --deep` | Thorough analysis with forked Explore agent |
+
+Context forking keeps intermediate work isolated from your main conversation.
+
+### Multi-Turn Context Awareness (Phase 3)
+
+- **Session state tracking**: Remembers last route for 30 minutes
+- **Follow-up detection**: Recognizes "and also", "what about", "yes, do that" patterns
+- **Context boost**: Follow-ups to complex queries get confidence boost toward same route
+
+### Error Recovery (Phase 4)
+
+| Command | Description |
+|---------|-------------|
+| `/retry` | Retry last query with escalated model |
+| `/retry deep` | Force escalation to Opus |
+
+Agents now include escalation guidance when they encounter tasks beyond their capability.
+
+### Analytics Dashboard (Phase 5)
+
+- `/router-analytics` generates interactive HTML dashboards with:
+  - Route distribution pie chart
+  - Daily/weekly trends
+  - Cost savings over time
+  - Session comparison metrics
+
+### Plugin Integration System
+
+Optional integrations with official Claude Code plugins:
+
+| Plugin | Integration |
+|--------|-------------|
+| hookify | Pattern-based behavior rules |
+| ralph-wiggum | Iterative development loops |
+| code-review | Multi-agent PR review |
+| feature-dev | 7-phase feature development |
+
+New command: `/router-plugins` to list and toggle integrations.
+
+All plugins are **optional** - Claude Router works fully without them.
+
+### Technical Details
+
+- Knowledge state schema bumped to v2.0
+- New session state file: `~/.claude/router-session.json`
+- New plugin_integrations field in state.json
+- 4 new skills, 4 new commands
+- Updated agent definitions with escalation guidance
+
+---
+
 ## [1.4.0] - 2026-01-08
 
 ### Added - Knowledge System (Phase 6)

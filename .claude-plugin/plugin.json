@@ -1,14 +1,14 @@
 {
   "name": "claude-router",
-  "version": "1.4.1",
-  "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity, with persistent knowledge system",
+  "version": "2.0.0",
+  "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity, with persistent knowledge system, context forking, and multi-turn awareness",
   "author": {
     "name": "Dan Monteiro"
   },
   "homepage": "https://github.com/0xrdan/claude-router",
   "repository": "https://github.com/0xrdan/claude-router",
   "license": "MIT",
-  "keywords": ["routing", "model-selection", "cost-optimization", "haiku", "sonnet", "opus"],
+  "keywords": ["routing", "model-selection", "cost-optimization", "haiku", "sonnet", "opus", "context-forking", "multi-turn"],
   "agents": [
     "./agents/fast-executor.md",
     "./agents/standard-executor.md",
@@ -22,7 +22,11 @@
     "./commands/learn-on.md",
     "./commands/learn-off.md",
     "./commands/knowledge.md",
-    "./commands/learn-reset.md"
+    "./commands/learn-reset.md",
+    "./commands/orchestrate.md",
+    "./commands/router-analytics.md",
+    "./commands/retry.md",
+    "./commands/router-plugins.md"
   ],
   "skills": [
     "./skills/route/SKILL.md",
@@ -31,6 +35,10 @@
     "./skills/learn-on/SKILL.md",
     "./skills/learn-off/SKILL.md",
     "./skills/knowledge/SKILL.md",
-    "./skills/learn-reset/SKILL.md"
+    "./skills/learn-reset/SKILL.md",
+    "./skills/orchestrate/SKILL.md",
+    "./skills/router-analytics/SKILL.md",
+    "./skills/retry/SKILL.md",
+    "./skills/router-plugins/SKILL.md"
   ]
 }

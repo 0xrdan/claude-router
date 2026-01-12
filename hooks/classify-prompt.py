@@ -51,17 +51,143 @@ AVG_OUTPUT_TOKENS = 2000
 
 # Exception patterns - queries that will be handled by Opus despite classification
 # (router meta-questions, slash commands handled in main())
+# Pre-compiled for performance
 EXCEPTION_PATTERNS = [
-    r'\brouter\b.*\b(stats?|config|setting|work)',
-    r'\brouting\b',
-    r'claude.?router',
-    r'\bexception\b.*\b(track|detect)',
-    r'\bclassif(y|ication)\b.*\b(prompt|query)',
+    re.compile(r'\brouter\b.*\b(stats?|config|setting|work)'),
+    re.compile(r'\brouting\b'),
+    re.compile(r'claude.?router'),
+    re.compile(r'\bexception\b.*\b(track|detect)'),
+    re.compile(r'\bclassif(y|ication)\b.*\b(prompt|query)'),
 ]
 
 # Classification cache settings
 CACHE_MAX_ENTRIES = 100
 CACHE_TTL_DAYS = 30
+
+# In-memory cache for extracted learning keywords (mtime-based invalidation)
+_KEYWORDS_CACHE = {"keywords": None, "mtime": 0}
+
+# In-memory classification cache (avoids file I/O for repeated queries in same session)
+# LRU-style: limited to 50 entries, cleared on process restart
+_MEMORY_CACHE = {}
+_MEMORY_CACHE_MAX = 50
+
+# Session state file for multi-turn context awareness
+SESSION_STATE_FILE = Path.home() / ".claude" / "router-session.json"
+
+# Follow-up query patterns (pre-compiled)
+FOLLOW_UP_PATTERNS = [
+    re.compile(r"^(and |also |now |next |then |but )"),
+    re.compile(r"^(what about|how about|can you also|could you also)"),
+    re.compile(r"^(yes|no|ok|okay|sure|right|great|perfect|thanks)[,.]?\s"),
+    re.compile(r"^(do that|go ahead|proceed|continue|keep going)"),
+    re.compile(r"^(actually|wait|instead|rather)"),
+]
+
+# Official plugins that claude-router can integrate with (optional)
+SUPPORTED_PLUGINS = ["hookify", "ralph-wiggum", "code-review", "feature-dev"]
+
+
+def detect_installed_plugins() -> dict:
+    """Check which official plugins are installed."""
+    detected = {}
+    # Check common plugin locations
+    plugin_locations = [
+        Path.home() / ".claude" / "plugins",
+        Path.home() / ".config" / "claude-code" / "plugins",
+    ]
+    for plugin in SUPPORTED_PLUGINS:
+        detected[plugin] = False
+        for loc in plugin_locations:
+            if (loc / plugin).exists() or (loc / f"{plugin}.md").exists():
+                detected[plugin] = True
+                break
+    return detected
+
+
+def get_plugin_integrations() -> dict:
+    """Get plugin integration states from knowledge state."""
+    state = get_learning_state()
+    return state.get("plugin_integrations", {
+        plugin: {"enabled": False, "detected": False}
+        for plugin in SUPPORTED_PLUGINS
+    })
+
+
+def is_plugin_enabled(plugin_name: str) -> bool:
+    """Check if a plugin integration is both detected and enabled."""
+    integrations = get_plugin_integrations()
+    plugin = integrations.get(plugin_name, {})
+    detected = detect_installed_plugins().get(plugin_name, False)
+    enabled = plugin.get("enabled", False)
+    return detected and enabled
+
+
+def get_session_state() -> dict:
+    """Get the current session state for multi-turn context awareness."""
+    try:
+        if SESSION_STATE_FILE.exists():
+            with open(SESSION_STATE_FILE, 'r') as f:
+                state = json.load(f)
+                # Check if session is stale (older than 30 minutes)
+                last_query = state.get("last_query_time", 0)
+                if datetime.now().timestamp() - last_query > 1800:  # 30 min
+                    return {"last_route": None, "conversation_depth": 0}
+                return state
+        return {"last_route": None, "conversation_depth": 0}
+    except Exception:
+        return {"last_route": None, "conversation_depth": 0}
+
+
+def update_session_state(route: str, metadata: dict = None):
+    """Update session state after a routing decision."""
+    try:
+        SESSION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        state = get_session_state()
+        state["last_route"] = route
+        state["last_query_time"] = datetime.now().timestamp()
+        state["conversation_depth"] = state.get("conversation_depth", 0) + 1
+        state["last_metadata"] = metadata or {}
+        with open(SESSION_STATE_FILE, 'w') as f:
+            json.dump(state, f)
+    except Exception:
+        pass  # Don't fail on state errors
+
+
+def is_follow_up_query(prompt: str) -> bool:
+    """Check if the query appears to be a follow-up to a previous query."""
+    prompt_lower = prompt.lower().strip()
+    for pattern in FOLLOW_UP_PATTERNS:
+        if pattern.match(prompt_lower):
+            return True
+    return False
+
+
+def apply_context_boost(result: dict, session_state: dict, is_follow_up: bool) -> dict:
+    """Apply confidence boost based on conversation context.
+
+    If this is a follow-up to a deep/complex query, boost confidence toward same route.
+    """
+    if not is_follow_up:
+        return result
+
+    last_route = session_state.get("last_route")
+    if not last_route:
+        return result
+
+    result["metadata"] = result.get("metadata", {})
+    result["metadata"]["follow_up"] = True
+
+    # If last route was deep/standard, boost current toward same
+    # (follow-ups to complex queries are often also complex)
+    if last_route in ("deep", "standard") and result["route"] == "fast":
+        if result["confidence"] < 0.8:
+            result["confidence"] = min(0.75, result["confidence"] + 0.15)
+            result["metadata"]["context_boost"] = f"follow_up_to_{last_route}"
+            # Don't change route, just boost confidence to potentially trigger LLM
+
+    return result
+
 
 def get_knowledge_dir() -> Path:
     """Get the knowledge directory path (project-local)."""
@@ -99,7 +225,19 @@ def generate_fingerprint(prompt: str) -> str:
     return hashlib.md5(fingerprint_str.encode()).hexdigest()[:12]
 
 def check_classification_cache(prompt: str) -> dict:
-    """Check if a similar query exists in the cache."""
+    """Check if a similar query exists in the cache.
+
+    Checks in-memory cache first (fastest), then falls back to file cache.
+    """
+    fingerprint = generate_fingerprint(prompt)
+
+    # Check in-memory cache first (no I/O)
+    if fingerprint in _MEMORY_CACHE:
+        result = _MEMORY_CACHE[fingerprint].copy()
+        result["metadata"] = result.get("metadata", {})
+        result["metadata"]["memory_cache_hit"] = True
+        return result
+
     try:
         knowledge_dir = get_knowledge_dir()
         if not knowledge_dir:
@@ -108,8 +246,6 @@ def check_classification_cache(prompt: str) -> dict:
         cache_file = knowledge_dir / "cache" / "classifications.md"
         if not cache_file.exists():
             return None
-
-        fingerprint = generate_fingerprint(prompt)
 
         with open(cache_file, 'r') as f:
             content = f.read()
@@ -128,14 +264,16 @@ def check_classification_cache(prompt: str) -> dict:
         conf_match = re.search(r'\*\*Confidence:\*\* ([\d.]+)', entry)
 
         if route_match and conf_match:
-            # Update hit count (we'll do this in a separate write)
-            return {
+            result = {
                 "route": route_match.group(1),
                 "confidence": float(conf_match.group(1)),
                 "signals": ["cache_hit"],
                 "method": "cache",
                 "metadata": {"cache_hit": True, "fingerprint": fingerprint}
             }
+            # Populate memory cache for faster subsequent lookups
+            _MEMORY_CACHE[fingerprint] = result.copy()
+            return result
 
         return None
     except Exception:
@@ -143,7 +281,27 @@ def check_classification_cache(prompt: str) -> dict:
         return None
 
 def write_classification_cache(prompt: str, result: dict):
-    """Write a classification result to the cache."""
+    """Write a classification result to the cache.
+
+    Writes to both in-memory cache (fast) and file cache (persistent).
+    """
+    global _MEMORY_CACHE
+
+    fingerprint = generate_fingerprint(prompt)
+
+    # Write to memory cache first (always, even if file cache fails)
+    # Simple LRU: if at max, remove oldest entry
+    if len(_MEMORY_CACHE) >= _MEMORY_CACHE_MAX:
+        # Remove first (oldest) entry
+        oldest_key = next(iter(_MEMORY_CACHE))
+        del _MEMORY_CACHE[oldest_key]
+    _MEMORY_CACHE[fingerprint] = {
+        "route": result["route"],
+        "confidence": result["confidence"],
+        "signals": result.get("signals", []),
+        "method": "cache",
+    }
+
     try:
         knowledge_dir = get_knowledge_dir()
         if not knowledge_dir:
@@ -153,7 +311,7 @@ def write_classification_cache(prompt: str, result: dict):
         if not cache_file.exists():
             return
 
-        fingerprint = generate_fingerprint(prompt)
+        # fingerprint already generated above for memory cache
         today = datetime.now().strftime("%Y-%m-%d")
 
         # Read existing cache
@@ -239,17 +397,33 @@ def get_learning_state() -> dict:
         return {}
 
 def extract_learning_keywords() -> dict:
-    """Extract keywords from learnings files to inform routing."""
+    """Extract keywords from learnings files to inform routing.
+
+    Uses mtime-based caching to avoid re-parsing files on every call.
+    """
+    global _KEYWORDS_CACHE
+
     try:
         knowledge_dir = get_knowledge_dir()
         if not knowledge_dir:
             return {"deep_keywords": set(), "fast_keywords": set()}
 
+        # Check file modification times for cache invalidation
+        quirks_file = knowledge_dir / "learnings" / "quirks.md"
+        patterns_file = knowledge_dir / "learnings" / "patterns.md"
+
+        quirks_mtime = quirks_file.stat().st_mtime if quirks_file.exists() else 0
+        patterns_mtime = patterns_file.stat().st_mtime if patterns_file.exists() else 0
+        current_mtime = max(quirks_mtime, patterns_mtime)
+
+        # Return cached result if files haven't changed
+        if _KEYWORDS_CACHE["keywords"] is not None and _KEYWORDS_CACHE["mtime"] >= current_mtime:
+            return _KEYWORDS_CACHE["keywords"]
+
         deep_keywords = set()
         fast_keywords = set()
 
         # Parse quirks.md for complexity indicators
-        quirks_file = knowledge_dir / "learnings" / "quirks.md"
         if quirks_file.exists():
             with open(quirks_file, 'r') as f:
                 content = f.read().lower()
@@ -264,7 +438,6 @@ def extract_learning_keywords() -> dict:
                         deep_keywords.update(words)
 
         # Parse patterns.md for simple patterns
-        patterns_file = knowledge_dir / "learnings" / "patterns.md"
         if patterns_file.exists():
             with open(patterns_file, 'r') as f:
                 content = f.read().lower()
@@ -276,7 +449,13 @@ def extract_learning_keywords() -> dict:
                         words = re.findall(r'\b[a-z]{3,}\b', insight_match.group(1).lower())
                         fast_keywords.update(words)
 
-        return {"deep_keywords": deep_keywords, "fast_keywords": fast_keywords}
+        result = {"deep_keywords": deep_keywords, "fast_keywords": fast_keywords}
+
+        # Cache the result with current mtime
+        _KEYWORDS_CACHE["keywords"] = result
+        _KEYWORDS_CACHE["mtime"] = current_mtime
+
+        return result
     except Exception:
         return {"deep_keywords": set(), "fast_keywords": set()}
 
@@ -322,74 +501,74 @@ def is_exception_query(prompt: str) -> tuple[bool, str]:
     """Check if query matches exception patterns that bypass routing."""
     prompt_lower = prompt.lower()
     for pattern in EXCEPTION_PATTERNS:
-        if re.search(pattern, prompt_lower):
+        if pattern.search(prompt_lower):  # Pre-compiled patterns use .search()
             return True, "router_meta"
     return False, None
 
-# Classification patterns
+# Classification patterns - Pre-compiled for performance
 PATTERNS = {
     "fast": [
         # Simple questions
-        r"^what (is|are|does) ",
-        r"^how (do|does|to) ",
-        r"^(show|list|get) .{0,30}$",
+        re.compile(r"^what (is|are|does) "),
+        re.compile(r"^how (do|does|to) "),
+        re.compile(r"^(show|list|get) .{0,30}$"),
         # Formatting
-        r"\b(format|lint|prettify|beautify)\b",
+        re.compile(r"\b(format|lint|prettify|beautify)\b"),
         # Git simple ops
-        r"\bgit (status|log|diff|add|commit|push|pull)\b",
+        re.compile(r"\bgit (status|log|diff|add|commit|push|pull)\b"),
         # JSON/YAML
-        r"\b(json|yaml|yml)\b.{0,20}$",
+        re.compile(r"\b(json|yaml|yml)\b.{0,20}$"),
         # Regex
-        r"\bregex\b",
+        re.compile(r"\bregex\b"),
         # Syntax questions
-        r"\bsyntax (for|of)\b",
-        r"^(what|how).{0,50}\?$",
+        re.compile(r"\bsyntax (for|of)\b"),
+        re.compile(r"^(what|how).{0,50}\?$"),
     ],
     "deep": [
         # Architecture
-        r"\b(architect|architecture|design pattern|system design)\b",
-        r"\bscalable?\b",
+        re.compile(r"\b(architect|architecture|design pattern|system design)\b"),
+        re.compile(r"\bscalable?\b"),
         # Security
-        r"\b(security|vulnerab|audit|penetration|exploit)\b",
+        re.compile(r"\b(security|vulnerab|audit|penetration|exploit)\b"),
         # Multi-file
-        r"\b(across|multiple|all) (files?|components?|modules?)\b",
-        r"\brefactor.{0,20}(codebase|project|entire)\b",
+        re.compile(r"\b(across|multiple|all) (files?|components?|modules?)\b"),
+        re.compile(r"\brefactor.{0,20}(codebase|project|entire)\b"),
         # Trade-offs
-        r"\b(trade-?off|compare|pros? (and|&) cons?)\b",
-        r"\b(analyze|evaluate|assess).{0,30}(option|approach|strateg)\b",
+        re.compile(r"\b(trade-?off|compare|pros? (and|&) cons?)\b"),
+        re.compile(r"\b(analyze|evaluate|assess).{0,30}(option|approach|strateg)\b"),
         # Complex
-        r"\b(complex|intricate|sophisticated)\b",
-        r"\boptimiz(e|ation).{0,20}(performance|speed|memory)\b",
+        re.compile(r"\b(complex|intricate|sophisticated)\b"),
+        re.compile(r"\boptimiz(e|ation).{0,20}(performance|speed|memory)\b"),
         # Planning
-        r"\b(multi-?phase|extraction|standalone repo|migration)\b",
+        re.compile(r"\b(multi-?phase|extraction|standalone repo|migration)\b"),
     ],
     "tool_intensive": [
         # Codebase exploration
-        r"\b(find|search|locate) (all|every|each)",
-        r"\bacross (the )?(codebase|project|repo)",
-        r"\b(all|every) (file|instance|usage|reference)",
-        r"\bwhere is .+ (used|called|defined)",
-        r"\b(scan|explore|traverse) (the )?(codebase|project)",
+        re.compile(r"\b(find|search|locate) (all|every|each)"),
+        re.compile(r"\bacross (the )?(codebase|project|repo)"),
+        re.compile(r"\b(all|every) (file|instance|usage|reference)"),
+        re.compile(r"\bwhere is .+ (used|called|defined)"),
+        re.compile(r"\b(scan|explore|traverse) (the )?(codebase|project)"),
         # Multi-file modifications
-        r"\b(update|change|modify|rename|replace) .{0,20}(all|every|multiple) files?",
-        r"\bglobal (search|replace|rename)",
-        r"\brefactor.{0,30}(across|throughout|entire)",
+        re.compile(r"\b(update|change|modify|rename|replace) .{0,20}(all|every|multiple) files?"),
+        re.compile(r"\bglobal (search|replace|rename)"),
+        re.compile(r"\brefactor.{0,30}(across|throughout|entire)"),
         # Build/test execution
-        r"\brun (all |the )?(tests?|specs?|suite)",
-        r"\bbuild (the )?(project|app)",
-        r"\bnpm (install|build|run)|yarn (install|build)|pip install",
+        re.compile(r"\brun (all |the )?(tests?|specs?|suite)"),
+        re.compile(r"\bbuild (the )?(project|app)"),
+        re.compile(r"\bnpm (install|build|run)|yarn (install|build)|pip install"),
         # Dependency analysis
-        r"\b(dependency|import) (tree|graph|analysis)",
-        r"\bwhat (depends on|imports|uses)",
+        re.compile(r"\b(dependency|import) (tree|graph|analysis)"),
+        re.compile(r"\bwhat (depends on|imports|uses)"),
     ],
     "orchestration": [
         # Multi-step workflows
-        r"\b(step by step|sequentially|in order)\b",
-        r"\bfor each (file|component|module)\b",
-        r"\bacross the (entire|whole) (codebase|project)",
+        re.compile(r"\b(step by step|sequentially|in order)\b"),
+        re.compile(r"\bfor each (file|component|module)\b"),
+        re.compile(r"\bacross the (entire|whole) (codebase|project)"),
         # Explicit multi-task
-        r"\band (also|then)\b.{0,50}\band (also|then)\b",
-        r"\b(multiple|several|many) (tasks?|steps?|operations?)\b",
+        re.compile(r"\band (also|then)\b.{0,50}\band (also|then)\b"),
+        re.compile(r"\b(multiple|several|many) (tasks?|steps?|operations?)\b"),
     ],
 }
 
@@ -542,7 +721,7 @@ def log_routing_decision(route: str, confidence: float, method: str, signals: li
 
 def classify_by_rules(prompt: str) -> dict:
     """
-    Classify prompt using regex patterns.
+    Classify prompt using pre-compiled regex patterns.
     Returns route, confidence, signals, and optional metadata.
 
     Priority order:
@@ -550,6 +729,8 @@ def classify_by_rules(prompt: str) -> dict:
     2. tool_intensive patterns (route to standard, or deep if combined)
     3. orchestration patterns (route to deep with orchestration flag)
     4. fast patterns (simple queries)
+
+    Optimized with early exit when sufficient signals are found.
     """
     prompt_lower = prompt.lower()
     deep_signals = []
@@ -557,22 +738,32 @@ def classify_by_rules(prompt: str) -> dict:
     orch_signals = []
 
     # Check for deep patterns first (highest priority)
+    # Pre-compiled patterns use .search() method directly
     for pattern in PATTERNS["deep"]:
-        if re.search(pattern, prompt_lower):
-            match = re.search(pattern, prompt_lower)
-            deep_signals.append(match.group(0) if match else pattern)
+        match = pattern.search(prompt_lower)
+        if match:
+            deep_signals.append(match.group(0))
+            # Early exit: if we have 3+ deep signals, no need to check more
+            if len(deep_signals) >= 3:
+                break
 
     # Check for tool-intensive patterns
     for pattern in PATTERNS.get("tool_intensive", []):
-        if re.search(pattern, prompt_lower):
-            match = re.search(pattern, prompt_lower)
-            tool_signals.append(match.group(0) if match else pattern)
+        match = pattern.search(prompt_lower)
+        if match:
+            tool_signals.append(match.group(0))
+            # Early exit: if we have deep + tool signals, we have enough
+            if deep_signals and len(tool_signals) >= 2:
+                break
 
     # Check for orchestration patterns
     for pattern in PATTERNS.get("orchestration", []):
-        if re.search(pattern, prompt_lower):
-            match = re.search(pattern, prompt_lower)
-            orch_signals.append(match.group(0) if match else pattern)
+        match = pattern.search(prompt_lower)
+        if match:
+            orch_signals.append(match.group(0))
+            # Early exit: if we have deep + orchestration, we have enough
+            if deep_signals:
+                break
 
     # Decision matrix: deep + tool_intensive + orchestration
     if deep_signals and (tool_signals or orch_signals):
@@ -623,9 +814,9 @@ def classify_by_rules(prompt: str) -> dict:
     # Check for fast patterns
     fast_signals = []
     for pattern in PATTERNS["fast"]:
-        if re.search(pattern, prompt_lower):
-            match = re.search(pattern, prompt_lower)
-            fast_signals.append(match.group(0) if match else pattern)
+        match = pattern.search(prompt_lower)
+        if match:
+            fast_signals.append(match.group(0))
             if len(fast_signals) >= 2:
                 return {"route": "fast", "confidence": 0.9, "signals": fast_signals[:3], "method": "rules"}
 
@@ -694,7 +885,8 @@ Return JSON only:
 
 def classify_hybrid(prompt: str) -> dict:
     """
-    Hybrid classification: cache first, then rules, then LLM fallback, then learned adjustments.
+    Hybrid classification: cache first, then rules, then LLM fallback,
+    then learned adjustments, then context boost.
     """
     # Step 0: Check cache for similar query (instant)
     cached = check_classification_cache(prompt)
@@ -704,7 +896,13 @@ def classify_hybrid(prompt: str) -> dict:
     # Step 1: Rule-based classification (instant, free)
     result = classify_by_rules(prompt)
 
-    # Step 2: If low confidence and API key available, use LLM
+    # Step 2: Check for multi-turn context (follow-up queries)
+    session_state = get_session_state()
+    follow_up = is_follow_up_query(prompt)
+    if follow_up:
+        result = apply_context_boost(result, session_state, follow_up)
+
+    # Step 3: If low confidence and API key available, use LLM
     if result["confidence"] < CONFIDENCE_THRESHOLD:
         api_key = get_api_key()
         if api_key:
@@ -716,10 +914,10 @@ def classify_hybrid(prompt: str) -> dict:
                 write_classification_cache(prompt, llm_result)
                 return llm_result
 
-    # Step 3: Apply learned adjustments (opt-in, conservative)
+    # Step 4: Apply learned adjustments (opt-in, conservative)
     result = apply_learned_adjustments(prompt, result)
 
-    # Step 4: Cache the result for future queries
+    # Step 5: Cache the result for future queries
     write_classification_cache(prompt, result)
 
     return result
@@ -762,6 +960,9 @@ def main():
     # Log routing decision to stats
     log_routing_decision(route, confidence, method, signals, metadata)
 
+    # Update session state for multi-turn context awareness
+    update_session_state(route, metadata)
+
     # Map route to subagent and model
     # Use opus-orchestrator for complex tasks with orchestration flag
     if route == "deep" and metadata.get("orchestration"):
@@ -781,6 +982,10 @@ def main():
         metadata_str += " | Tool-intensive: Yes"
     if metadata.get("orchestration"):
         metadata_str += " | Orchestration: Yes"
+    if metadata.get("follow_up"):
+        metadata_str += " | Follow-up: Yes"
+    if metadata.get("context_boost"):
+        metadata_str += f" | Context: {metadata['context_boost']}"
     if metadata.get("exception_type"):
         metadata_str += f" | Exception: {metadata['exception_type']}"
 
