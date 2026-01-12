@@ -26,7 +26,8 @@
     "./commands/orchestrate.md",
     "./commands/router-analytics.md",
     "./commands/retry.md",
-    "./commands/router-plugins.md"
+    "./commands/router-plugins.md",
+    "./commands/migrate-marketplace.md"
   ],
   "skills": [
     "./skills/route/SKILL.md",
@@ -39,6 +40,7 @@
     "./skills/orchestrate/SKILL.md",
     "./skills/router-analytics/SKILL.md",
     "./skills/retry/SKILL.md",
-    "./skills/router-plugins/SKILL.md"
+    "./skills/router-plugins/SKILL.md",
+    "./skills/migrate-marketplace/SKILL.md"
   ]
 }
