@@ -2,6 +2,13 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.1] - 2026-01-12
+
+### Fixed
+- Renamed `ralph-wiggum` to `ralph-loop` across all references to match the official plugin name in the marketplace
+
+---
+
 ## [2.0.0] - 2026-01-11
 
 ### Major Release - Performance, Context Forking, Multi-Turn Awareness
