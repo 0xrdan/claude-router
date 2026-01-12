@@ -48,7 +48,7 @@ Opus 4.5 is excellent at using tools and spawning subagents - but there's a catc
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### With Claude Router (v1.2)
+### With Claude Router (v2.0)
 
 Claude Router adds **cost-aware routing at every level**:
 
@@ -227,6 +227,13 @@ Route: deep | Model: Opus (Orchestrator) | Confidence: 95% | Method: rules | Too
 Signals: architecture, refactor across the entire codebase
 ```
 
+**Follow-up query with context awareness (v2.0):**
+```
+[Claude Router] MANDATORY ROUTING DIRECTIVE
+Route: deep | Model: Opus | Confidence: 92% | Method: rules | Follow-up: Yes | Context boost: +0.1
+Signals: follow-up to previous complex query
+```
+
 ## Configuration
 
 ### Hybrid Classification
@@ -263,6 +270,42 @@ Models: `haiku`/`fast`, `sonnet`/`standard`, `opus`/`deep`
 **Knowledge Commands (v1.4):** `/learn`, `/learn-on`, `/learn-off`, `/knowledge`, `/learn-reset`
 
 See [Knowledge System](#knowledge-system-v14) section for details.
+
+**Context Forking Commands (v2.0):**
+
+**`/orchestrate <task>`** - Execute complex multi-step tasks with forked context:
+```
+/orchestrate Refactor the authentication system to use JWT tokens
+/orchestrate Add comprehensive error handling across all API endpoints
+```
+Benefits: Clean history (subtasks stay in fork), cost optimized (40-50% cheaper), better focus.
+
+**`/router-analytics`** - Generate interactive HTML analytics dashboard:
+```
+/router-analytics
+/router-analytics --output ~/Desktop/router-report.html
+```
+Generates charts for route distribution, daily/weekly trends, and cost savings.
+
+**Error Recovery Commands (v2.0):**
+
+**`/retry`** - Retry last query with an escalated model:
+```
+/retry              # Escalate to next tier
+/retry deep         # Force escalation to Opus
+/retry standard     # Force escalation to Sonnet
+```
+Use when: timeout/error, incomplete answer, wrong approach, need more depth.
+
+**Plugin Integration Commands (v2.0):**
+
+**`/router-plugins`** - Manage optional plugin integrations:
+```
+/router-plugins                     # List all plugins and status
+/router-plugins enable <name>       # Enable integration
+/router-plugins disable <name>      # Disable integration
+```
+Supported plugins: hookify, ralph-wiggum, code-review, feature-dev (all optional).
 
 ### Automatic vs Manual Routing
 
@@ -314,9 +357,13 @@ claude-router/
 │   │   ├── learn-on.md            # (v1.4)
 │   │   ├── learn-off.md           # (v1.4)
 │   │   ├── knowledge.md           # (v1.4)
-│   │   └── learn-reset.md         # (v1.4)
+│   │   ├── learn-reset.md         # (v1.4)
+│   │   ├── orchestrate.md         # (v2.0)
+│   │   ├── router-analytics.md    # (v2.0)
+│   │   ├── retry.md               # (v2.0)
+│   │   └── router-plugins.md      # (v2.0)
 │   ├── hooks/
-│   │   └── classify-prompt.py     # Hybrid classifier
+│   │   └── classify-prompt.py     # Hybrid classifier with multi-turn awareness
 │   ├── skills/
 │   │   ├── route/                 # Manual routing skill
 │   │   ├── router-stats/          # Statistics skill
@@ -324,7 +371,11 @@ claude-router/
 │   │   ├── learn-on/              # Enable continuous learning (v1.4)
 │   │   ├── learn-off/             # Disable continuous learning (v1.4)
 │   │   ├── knowledge/             # Knowledge base status (v1.4)
-│   │   └── learn-reset/           # Reset knowledge base (v1.4)
+│   │   ├── learn-reset/           # Reset knowledge base (v1.4)
+│   │   ├── orchestrate/           # Forked orchestration (v2.0)
+│   │   ├── router-analytics/      # HTML dashboard (v2.0)
+│   │   ├── retry/                 # Error recovery (v2.0)
+│   │   └── router-plugins/        # Plugin management (v2.0)
 │   └── plugin.json                # Plugin manifest
 ├── agents/                        # Source agent definitions
 ├── commands/                      # Source command definitions
@@ -337,7 +388,7 @@ claude-router/
     │   ├── quirks.md              # Project oddities
     │   └── decisions.md           # Architectural decisions
     ├── context/                   # Session state
-    └── state.json                 # Learning mode state
+    └── state.json                 # Learning mode & plugin state
 ```
 
 ## Knowledge System (v1.4)
@@ -495,8 +546,21 @@ This is conservative by design - it requires strong signals (2+ keyword matches)
   - `/knowledge` to view accumulated project intelligence
   - Captures patterns, quirks, and decisions specific to each project
 
+- [x] **Phase 7:** Performance, Context Forking & Multi-Turn Awareness (v2.0.0)
+  - **Performance optimizations**: Pre-compiled regex (~10-15% faster), keyword caching, early exit, in-memory LRU cache
+  - **Context forking**: `/orchestrate` for clean subtask isolation, `/router-analytics` for dashboard generation
+  - **Multi-turn awareness**: Session state tracking, follow-up detection, context-aware confidence boost
+  - **Error recovery**: `/retry` command for model escalation when queries fail or need more depth
+  - **Plugin integration**: Optional integrations with official plugins (hookify, ralph-wiggum, code-review, feature-dev)
+  - **Analytics dashboard**: `/router-analytics` generates interactive HTML charts
+
 ### Coming Soon
-- More enhancements based on community feedback
+- **Phase 8:** Hookify Integration (v2.1.0)
+  - Dynamic routing rule creation via hookify
+  - Dual autonomy: both user and Claude can create rules
+  - User: `/hookify "Always route auth questions to deep"`
+  - Claude: Auto-suggest rules based on repeated escalation patterns
+  - Learning-to-rules conversion (quirks → hookify rules)
 
 ## Contributing
 
