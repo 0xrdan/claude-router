@@ -1,5 +1,8 @@
 {
   "name": "claude-router-marketplace",
+  "deprecated": true,
+  "deprecation_notice": "This marketplace has moved to github:0xrdan/claude-plugins. Please run: /plugin add marketplace github:0xrdan/claude-plugins",
+  "redirect": "github:0xrdan/claude-plugins",
   "owner": {
     "name": "Dan Monteiro",
     "url": "https://github.com/0xrdan"
@@ -9,7 +12,7 @@
       "name": "claude-router",
       "source": "./",
       "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity, with persistent knowledge system",
-      "version": "1.4.1"
+      "version": "2.0.1"
     }
   ]
 }
