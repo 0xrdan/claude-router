@@ -2,6 +2,18 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.2] - 2026-01-12
+
+### Changed
+- **Marketplace migration**: Moved from `claude-router-marketplace` to centralized `0xrdan/claude-plugins`
+- Added `/migrate-marketplace` command (temporary) to help users migrate
+- Added daily deprecation warning for users on old marketplace
+- Old marketplace will be removed in a future update
+
+**Note:** This is a distribution change only. The plugin repo (`0xrdan/claude-router`) remains the same. Your settings and stats are preserved.
+
+---
+
 ## [2.0.1] - 2026-01-12
 
 ### Fixed
