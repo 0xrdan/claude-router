@@ -1,6 +1,6 @@
 # Claude Router
 
-**Intelligent model routing for Claude Code** - Automatically routes queries to the optimal Claude model (Haiku/Sonnet/Opus) based on complexity, reducing costs by up to 80% without sacrificing quality.
+**Intelligent model orchestration for Claude Code** - Automatically routes queries to the optimal Claude model (Haiku/Sonnet/Opus) based on complexity, reducing costs by up to 80% without sacrificing quality.
 
 ## What Makes This Novel
 
@@ -123,7 +123,7 @@ See [How It Works](docs/how-it-works.md) for detailed comparison.
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+Sharing and Contributions are welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -131,4 +131,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Built for the Claude Code community** | [Report Issues](https://github.com/0xrdan/claude-router/issues) | [Follow @dannymonteiro on LinkedIn](https://linkedin.com/in/dannymonteiro)
+**Built for the Claude Code community** | [Report Issues](https://github.com/0xrdan/claude-router/issues) | [@dannymonteiro](https://linkedin.com/in/dannymonteiro)
+

@@ -2,6 +2,19 @@
 
 All notable changes to Claude Router will be documented in this file.
 
+## [2.0.7] - 2026-01-13
+
+### Changed
+- Added `knowledge/` and `router-analytics.html` to `.gitignore` for better privacy protection
+- Learning data is now double-protected: root `.gitignore` + `knowledge/.gitignore`
+
+### Removed
+- Removed deprecated marketplace migration functionality (`/migrate-marketplace` command)
+- Removed deprecation warning system (no longer needed after marketplace transition)
+- Cleaned up related code from hooks
+
+---
+
 ## [2.0.6] - 2026-01-12
 
 ### Changed

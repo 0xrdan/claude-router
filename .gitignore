@@ -24,5 +24,8 @@ Thumbs.db
 .env
 .env.local
 
-# Internal drafts
-.knowledge-architecture-draft.md
+# User-generated content (Claude Router creates these locally)
+# These may contain project-specific or sensitive information
+# To share knowledge with your team, see knowledge/.gitignore
+knowledge/
+router-analytics.html

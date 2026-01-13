@@ -1,6 +1,6 @@
 {
   "name": "claude-router",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Intelligent model routing for Claude Code - routes queries to optimal Claude model (Haiku/Sonnet/Opus) based on complexity, with persistent knowledge system, context forking, and multi-turn awareness",
   "author": {
     "name": "Dan Monteiro"
@@ -26,8 +26,7 @@
     "./commands/orchestrate.md",
     "./commands/router-analytics.md",
     "./commands/retry.md",
-    "./commands/router-plugins.md",
-    "./commands/migrate-marketplace.md"
+    "./commands/router-plugins.md"
   ],
   "skills": [
     "./skills/route/SKILL.md",
@@ -40,7 +39,6 @@
     "./skills/orchestrate/SKILL.md",
     "./skills/router-analytics/SKILL.md",
     "./skills/retry/SKILL.md",
-    "./skills/router-plugins/SKILL.md",
-    "./skills/migrate-marketplace/SKILL.md"
+    "./skills/router-plugins/SKILL.md"
   ]
 }
